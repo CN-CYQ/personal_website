@@ -29,7 +29,7 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
 <style scoped>
 .hero {
   position: relative;
-  min-height: 100svh;
+  height: 100%;
   overflow: hidden;
   isolation: isolate;
   color: #123d35;
@@ -92,7 +92,7 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100svh;
+  height: 100%;
   padding: 88px clamp(22px, 4vw, 68px) 22px;
   pointer-events: none;
 }

@@ -27,6 +27,18 @@ import HorizontalGlassNav from '@/components/navigation/HorizontalGlassNav.vue'
 </template>
 
 <style scoped>
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.site-main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .brand,
 .site-status {
   position: relative;
