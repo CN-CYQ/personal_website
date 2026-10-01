@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
+
+import HorizontalGlassNav from '@/components/navigation/HorizontalGlassNav.vue'
 </script>
 
 <template>
@@ -9,6 +11,8 @@ import { RouterView } from 'vue-router'
         <span class="brand-mark">CY</span>
         <span class="brand-name">CN-CYQ</span>
       </RouterLink>
+
+      <HorizontalGlassNav />
 
       <div class="site-status">
         <span class="site-status__dot" aria-hidden="true" />
@@ -21,3 +25,11 @@ import { RouterView } from 'vue-router'
     </main>
   </div>
 </template>
+
+<style scoped>
+.brand,
+.site-status {
+  position: relative;
+  z-index: 2;
+}
+</style>

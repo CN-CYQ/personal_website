@@ -1,55 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-
-import AudioPlayerCard from '@/components/music/AudioPlayerCard.vue'
-import { mockTracks, mockWaveform } from '@/components/music/mock'
-import type { PlaybackMode } from '@/components/music/types'
 import HeroWeatherCard from '@/features/weather/components/HeroWeatherCard.vue'
+import FloatingMusicPlayer from '@/features/music/components/FloatingMusicPlayer.vue'
 
 import GrassWaveCanvas from './GrassWaveCanvas.vue'
-
-const currentTrackIndex = ref(0)
-const isPlaying = ref(false)
-const playbackMode = ref<PlaybackMode>('list')
-const playbackPosition = ref(mockTracks[0]?.currentTime ?? 0)
-const currentTrack = computed(() => {
-  const track = mockTracks[currentTrackIndex.value]
-
-  return {
-    ...track,
-    currentTime: playbackPosition.value,
-  }
-})
-
-watch(currentTrackIndex, (index) => {
-  playbackPosition.value = mockTracks[index]?.currentTime ?? 0
-})
-
-function handlePlayPause() {
-  isPlaying.value = !isPlaying.value
-}
-
-function handleNext() {
-  currentTrackIndex.value = (currentTrackIndex.value + 1) % mockTracks.length
-  isPlaying.value = false
-}
-
-function handlePrev() {
-  currentTrackIndex.value =
-    (currentTrackIndex.value - 1 + mockTracks.length) % mockTracks.length
-  isPlaying.value = false
-}
-
-function handleCycleMode() {
-  const modes: PlaybackMode[] = ['list', 'single', 'shuffle']
-  const currentIndex = modes.indexOf(playbackMode.value)
-
-  playbackMode.value = modes[(currentIndex + 1) % modes.length] ?? 'list'
-}
-
-function handleScrub(value: number) {
-  playbackPosition.value = value
-}
 </script>
 
 <template>
@@ -57,23 +10,10 @@ function handleScrub(value: number) {
     <GrassWaveCanvas />
     <div class="hero__sky-glow" aria-hidden="true" />
     <HeroWeatherCard class="hero__weather-slot" />
+    <FloatingMusicPlayer class="hero__player-slot" />
 
     <div class="hero__content">
-      <div class="hero__player-slot">
-        <AudioPlayerCard
-          :track="currentTrack"
-          :is-playing="isPlaying"
-          :mode="playbackMode"
-          :waveform="mockWaveform"
-          @play-pause="handlePlayPause"
-          @next="handleNext"
-          @prev="handlePrev"
-          @cycle-mode="handleCycleMode"
-          @scrub="handleScrub"
-        />
-      </div>
-
-      <div class="hero__bottomline">
+      <!-- <div class="hero__bottomline">
         <p class="hero__glass-chip hero__interaction">
           <span class="hero__interaction-mark" aria-hidden="true" />
           Move through the meadow
@@ -81,7 +21,7 @@ function handleScrub(value: number) {
         <p class="hero__glass-chip hero__coordinate">
           WIND / 1.18&nbsp;&nbsp; LIGHT / 82%
         </p>
-      </div>
+      </div> -->
     </div>
   </section>
 </template>
@@ -166,12 +106,11 @@ function handleScrub(value: number) {
 }
 
 .hero__player-slot {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  padding-top: clamp(148px, 17vh, 196px);
+  position: absolute;
+  z-index: 6;
+  bottom: clamp(20px, 4vh, 42px);
+  left: clamp(22px, 4vw, 68px);
   pointer-events: auto;
-  transition: padding-top 460ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hero__bottomline {
@@ -228,16 +167,14 @@ function handleScrub(value: number) {
   }
 
   .hero__player-slot {
-    padding-top: 336px;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .hero__weather-slot {
     top: 122px;
     right: 16px;
-  }
-
-  .hero:has(.hero-weather.is-expanded) .hero__player-slot {
-    padding-top: 500px;
   }
 
   .hero__coordinate {
@@ -250,9 +187,11 @@ function handleScrub(value: number) {
     padding-top: 76px;
     padding-bottom: 18px;
   }
+}
 
+@media (max-height: 700px) and (max-width: 720px) {
   .hero__player-slot {
-    padding-top: 112px;
+    bottom: 4px;
   }
 }
 </style>

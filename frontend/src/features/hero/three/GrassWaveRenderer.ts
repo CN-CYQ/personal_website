@@ -57,10 +57,11 @@ const vertexShader = /* glsl */ `
   varying float vAlpha;
 
   float terrainHeight(vec2 point) {
-    float height = sin(point.x * 0.14 + 0.7) * 0.88;
-    height += cos(point.y * 0.22 - point.x * 0.06) * 0.92;
-    height += sin((point.x + point.y) * 0.34) * 0.38;
-    height += cos(length(point + vec2(3.0, -2.5)) * 0.3) * 0.22;
+    float height = sin(point.x * 0.115 + 0.48) * 1.16;
+    height += cos(point.y * 0.17 - point.x * 0.055 + 0.84) * 1.02;
+    height += sin((point.x + point.y * 0.72) * 0.27 - 0.34) * 0.58;
+    height += cos(length(point * vec2(0.62, 0.46) + vec2(-5.0, 2.5)) * 0.32)
+      * 0.28;
     return height;
   }
 
@@ -105,37 +106,53 @@ const vertexShader = /* glsl */ `
     gl_Position = projectionMatrix * modelViewPosition;
 
     float elevation = terrainHeight(aBase);
-    float ridge = smoothstep(-1.15, 1.25, elevation);
-    float sunSide = smoothstep(-8.0, 13.0, aBase.x)
-      * smoothstep(-2.0, 8.0, aBase.y);
-    float sunRidge = smoothstep(0.52, 1.02, ridge + sunSide * 0.34);
+    float ridge = smoothstep(-1.25, 1.45, elevation);
+    float sunSide = smoothstep(-11.0, 15.0, aBase.x)
+      * smoothstep(-10.0, 10.0, aBase.y);
+    float sunFacing = smoothstep(0.44, 0.92, ridge + sunSide * 0.18);
+    float sunRidge = smoothstep(
+      0.52,
+      1.0,
+      ridge * 0.78 + sunFacing * 0.46 + sunSide * 0.2
+    );
     float tipLight = pow(top, 3.2);
 
-    vec3 deepTeal = vec3(0.025, 0.21, 0.26);
-    vec3 blueGreen = vec3(0.035, 0.4, 0.45);
-    vec3 meadowGreen = vec3(0.075, 0.52, 0.3);
-    vec3 freshGreen = vec3(0.31, 0.7, 0.29);
-    vec3 yellowGreen = vec3(0.62, 0.8, 0.22);
-    vec3 warmGold = vec3(0.98, 0.82, 0.4);
-    vec3 fuzzyTip = vec3(0.84, 0.98, 0.65);
+    vec3 valleyBlue = vec3(0.005, 0.12, 0.19);
+    vec3 deepTeal = vec3(0.012, 0.27, 0.3);
+    vec3 blueGreen = vec3(0.025, 0.4, 0.42);
+    vec3 meadowGreen = vec3(0.075, 0.43, 0.23);
+    vec3 freshGreen = vec3(0.22, 0.51, 0.2);
+    vec3 yellowGreen = vec3(0.57, 0.6, 0.17);
+    vec3 warmGold = vec3(0.96, 0.74, 0.29);
+    vec3 fuzzyTip = vec3(0.8, 0.88, 0.48);
 
-    vec3 color = mix(deepTeal, blueGreen, smoothstep(-0.1, 0.5, ridge));
-    color = mix(color, meadowGreen, smoothstep(0.24, 0.72, ridge));
+    vec3 color = mix(valleyBlue, deepTeal, smoothstep(-0.2, 0.46, ridge));
+    color = mix(color, blueGreen, smoothstep(0.12, 0.62, ridge));
+    color = mix(color, meadowGreen, smoothstep(0.38, 0.8, ridge));
     color = mix(color, freshGreen, smoothstep(0.62, 0.96, ridge));
-    color = mix(color, yellowGreen, sunRidge * 0.76);
-    color = mix(color, warmGold, sunRidge * smoothstep(0.35, 1.0, tipLight) * 0.82);
-    color = mix(color, fuzzyTip, tipLight * (0.16 + sunSide * 0.62));
+    color = mix(color, yellowGreen, sunRidge * 0.82);
+    color = mix(color, warmGold, sunRidge * (0.18 + smoothstep(0.42, 1.0, tipLight) * 0.78));
+    color = mix(color, fuzzyTip, tipLight * (0.1 + sunRidge * 0.42));
+
+    float microLight = fract(aTint * 17.31 + aPhase * 0.113);
+    color *= mix(0.74, 1.08, microLight);
+    color *= mix(1.0, 0.62, smoothstep(0.0, 22.0, transformed.z));
     color += vec3(0.05, 0.18, 0.15) * pointerFalloff * uPointerInfluence;
 
-    float depthFade = smoothstep(-24.0, -3.0, transformed.z)
-      * (1.0 - smoothstep(7.0, 15.0, transformed.z));
-    float horizonDistance = 1.0 - smoothstep(-24.0, 2.0, transformed.z);
-    color = mix(vec3(0.7, 0.85, 0.84), color, mix(0.3, 1.0, depthFade));
+    float depthFade = smoothstep(-20.0, -5.0, transformed.z)
+      * (1.0 - smoothstep(8.0, 18.0, transformed.z));
+    float horizonDistance = smoothstep(-13.0, -1.0, transformed.z);
+    vec3 horizonHaze = mix(
+      vec3(0.54, 0.72, 0.8),
+      warmGold,
+      sunSide * smoothstep(0.48, 0.95, ridge) * 0.34
+    );
+    color = mix(horizonHaze, color, mix(0.58, 1.0, depthFade));
 
     vColor = color;
-    vAlpha = (0.24 + top * 0.7)
-      * mix(0.36, 1.0, depthFade)
-      * mix(0.78, 1.0, horizonDistance);
+    vAlpha = (0.32 + top * 0.68)
+      * mix(0.48, 1.0, depthFade)
+      * mix(0.1, 1.0, horizonDistance);
   }
 `
 
