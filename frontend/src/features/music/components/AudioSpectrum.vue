@@ -86,7 +86,7 @@ function drawSpectrum(time: number, animate: boolean) {
     const phase = index * 0.83
     const pulse = animate
       ? 0.46 +
-        (Math.sin(time * 0.0021 + phase) * 0.5 + 0.5) * 0.54
+      (Math.sin(time * 0.0021 + phase) * 0.5 + 0.5) * 0.54
       : 1
     const secondary = animate
       ? Math.sin(time * 0.0013 + phase * 1.7) * 0.08
@@ -95,7 +95,7 @@ function drawSpectrum(time: number, animate: boolean) {
       0.08,
       Math.min(1, bar / 100 + secondary),
     )
-    const barHeight = Math.max(3, height * normalizedHeight * pulse)
+    const barHeight = animate ? Math.max(3, height * normalizedHeight * pulse) : 2
     const x = index * (barWidth + gap)
     const y = centerY - barHeight / 2
 

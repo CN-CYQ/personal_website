@@ -16,7 +16,7 @@ import AudioSpectrum from './AudioSpectrum.vue'
 import PlayerControls from './PlayerControls.vue'
 
 const currentTrackIndex = ref(0)
-const isPlaying = ref(false)
+const isPlaying = ref(true)
 const playbackMode = ref<PlaybackMode>('shuffle')
 const isPlaylistOpen = ref(false)
 const elapsedSeconds = ref(demoTracks[0]?.startTime ?? 0)
@@ -24,6 +24,42 @@ const isSeeking = ref(false)
 const progressElement = ref<HTMLElement | null>(null)
 
 let playbackTimer: number | undefined
+
+const rotationAngle = ref(0)
+let rotationAnimationId: number | null = null
+let lastRotationTimestamp: number | null = null
+const ROTATION_SPEED = 18
+
+function startRotation() {
+  if (rotationAnimationId !== null) return
+  lastRotationTimestamp = null
+
+  function animate(timestamp: number) {
+    if (lastRotationTimestamp !== null) {
+      const delta = (timestamp - lastRotationTimestamp) / 1000
+      rotationAngle.value = (rotationAngle.value + ROTATION_SPEED * delta) % 360
+    }
+    lastRotationTimestamp = timestamp
+    rotationAnimationId = requestAnimationFrame(animate)
+  }
+
+  rotationAnimationId = requestAnimationFrame(animate)
+}
+
+function stopRotation() {
+  if (rotationAnimationId !== null) {
+    cancelAnimationFrame(rotationAnimationId)
+    rotationAnimationId = null
+  }
+}
+
+function syncRotation(playing: boolean) {
+  if (playing) {
+    startRotation()
+  } else {
+    stopRotation()
+  }
+}
 
 const currentTrack = computed(() => demoTracks[currentTrackIndex.value]!)
 const duration = computed(() => currentTrack.value.duration)
@@ -175,28 +211,23 @@ function closePlaylist() {
 }
 
 watch(isPlaying, syncPlaybackTimer)
-onMounted(syncPlaybackTimer)
-onBeforeUnmount(clearPlaybackTimer)
+watch(isPlaying, syncRotation)
+onMounted(() => {
+  syncPlaybackTimer()
+  syncRotation(isPlaying.value)
+})
+onBeforeUnmount(() => {
+  clearPlaybackTimer()
+  stopRotation()
+})
 </script>
 
 <template>
-  <section
-    class="music-player"
-    aria-label="音乐播放器"
-    @keydown.esc="closePlaylist"
-  >
+  <section class="music-player" aria-label="音乐播放器" @keydown.esc="closePlaylist">
     <div class="music-player__disc-shell">
-      <div
-        class="music-player__disc"
-        :class="{ 'is-playing': isPlaying }"
-      >
-        <img
-          class="music-player__cover"
-          :src="currentTrack.coverUrl"
-          :alt="`${currentTrack.title} 专辑封面`"
-          width="384"
-          height="384"
-        />
+      <div class="music-player__disc" :class="{ 'is-playing': isPlaying }">
+        <img class="music-player__cover" :src="currentTrack.coverUrl" :alt="`${currentTrack.title} 专辑封面`" width="384"
+          height="384" :style="{ transform: `scale(1.015) translateZ(0) rotate(${rotationAngle}deg)` }" />
         <span class="music-player__cover-scrim" aria-hidden="true" />
         <div class="music-player__meta">
           <h2>{{ currentTrack.title }}</h2>
@@ -205,40 +236,18 @@ onBeforeUnmount(clearPlaybackTimer)
       </div>
     </div>
 
-    <AudioSpectrum
-      class="music-player__spectrum"
-      :bars="demoWaveform"
-      :is-playing="isPlaying"
-    />
+    <AudioSpectrum class="music-player__spectrum" :bars="demoWaveform" :is-playing="isPlaying" />
 
     <div class="music-player__progress">
-      <div
-        ref="progressElement"
-        class="music-player__slider"
-        role="slider"
-        tabindex="0"
-        aria-label="播放进度"
-        :aria-valuemin="0"
-        :aria-valuemax="duration"
-        :aria-valuenow="Math.round(elapsedSeconds)"
-        :aria-valuetext="`${formatTime(elapsedSeconds)} / ${formatTime(duration)}`"
-        @pointerdown="handleSeekPointerDown"
-        @pointermove="handleSeekPointerMove"
-        @pointerup="finishSeeking"
-        @pointercancel="finishSeeking"
-        @keydown="handleSeekKeydown"
-      >
+      <div ref="progressElement" class="music-player__slider" role="slider" tabindex="0" aria-label="播放进度"
+        :aria-valuemin="0" :aria-valuemax="duration" :aria-valuenow="Math.round(elapsedSeconds)"
+        :aria-valuetext="`${formatTime(elapsedSeconds)} / ${formatTime(duration)}`" @pointerdown="handleSeekPointerDown"
+        @pointermove="handleSeekPointerMove" @pointerup="finishSeeking" @pointercancel="finishSeeking"
+        @keydown="handleSeekKeydown">
         <span class="music-player__rail" aria-hidden="true">
-          <span
-            class="music-player__rail-fill"
-            :style="{ transform: `scaleX(${progress})` }"
-          />
+          <span class="music-player__rail-fill" :style="{ transform: `scaleX(${progress})` }" />
         </span>
-        <span
-          class="music-player__thumb"
-          :style="{ left: `${progressPercent}%` }"
-          aria-hidden="true"
-        />
+        <span class="music-player__thumb" :style="{ left: `${progressPercent}%` }" aria-hidden="true" />
       </div>
 
       <div class="music-player__time-row">
@@ -247,37 +256,15 @@ onBeforeUnmount(clearPlaybackTimer)
       </div>
     </div>
 
-    <PlayerControls
-      class="music-player__controls"
-      :is-playing="isPlaying"
-      :playback-mode="playbackMode"
-      :is-playlist-open="isPlaylistOpen"
-      @play-pause="handlePlayPause"
-      @next="handleNext"
-      @previous="handlePrevious"
-      @cycle-mode="handleCyclePlaybackMode"
-      @toggle-playlist="togglePlaylist"
-    />
+    <PlayerControls class="music-player__controls" :is-playing="isPlaying" :playback-mode="playbackMode"
+      :is-playlist-open="isPlaylistOpen" @play-pause="handlePlayPause" @next="handleNext" @previous="handlePrevious"
+      @cycle-mode="handleCyclePlaybackMode" @toggle-playlist="togglePlaylist" />
 
-    <div
-      id="music-player-playlist"
-      class="music-player__playlist"
-      :class="{ 'is-open': isPlaylistOpen }"
-      role="menu"
-      aria-label="播放列表"
-      :aria-hidden="!isPlaylistOpen"
-      :inert="!isPlaylistOpen"
-    >
-      <button
-        v-for="(track, index) in demoTracks"
-        :key="track.id"
-        class="music-player__playlist-item"
-        :class="{ 'is-current': index === currentTrackIndex }"
-        type="button"
-        role="menuitemradio"
-        :aria-checked="index === currentTrackIndex"
-        @click="selectTrack(index)"
-      >
+    <div id="music-player-playlist" class="music-player__playlist" :class="{ 'is-open': isPlaylistOpen }" role="menu"
+      aria-label="播放列表" :aria-hidden="!isPlaylistOpen" :inert="!isPlaylistOpen">
+      <button v-for="(track, index) in demoTracks" :key="track.id" class="music-player__playlist-item"
+        :class="{ 'is-current': index === currentTrackIndex }" type="button" role="menuitemradio"
+        :aria-checked="index === currentTrackIndex" @click="selectTrack(index)">
         <span>{{ track.title }}</span>
         <small>{{ formatTime(track.duration) }}</small>
       </button>
@@ -307,19 +294,17 @@ onBeforeUnmount(clearPlaybackTimer)
   z-index: 0;
   display: grid;
   width: 90%;
-  max-width: 330px;
+  max-width: 310px;
   aspect-ratio: 1;
   place-items: center;
   border-radius: 50%;
   background:
-    radial-gradient(
-      circle at 69% 17%,
+    radial-gradient(circle at 69% 17%,
       rgb(167 202 208 / 50%) 0%,
       rgb(125 165 186 / 52%) 18%,
       rgb(77 137 144 / 62%) 38%,
       rgb(42 89 103 / 82%) 65%,
-      rgb(23 50 62 / 96%) 100%
-    );
+      rgb(23 50 62 / 96%) 100%);
   box-shadow:
     0 34px 52px rgb(0 19 28 / 42%),
     0 0 38px rgb(74 155 142 / 20%),
@@ -331,12 +316,10 @@ onBeforeUnmount(clearPlaybackTimer)
   z-index: -1;
   inset: -18px;
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgb(74 155 142 / 22%),
-    rgb(45 90 107 / 14%) 58%,
-    transparent 72%
-  );
+  background: radial-gradient(circle,
+      rgb(74 155 142 / 22%),
+      rgb(45 90 107 / 14%) 58%,
+      transparent 72%);
   content: '';
   filter: blur(15px);
   pointer-events: none;
@@ -363,14 +346,7 @@ onBeforeUnmount(clearPlaybackTimer)
   filter: saturate(0.8) brightness(0.84) contrast(1.02);
   object-fit: cover;
   backface-visibility: hidden;
-  transform: scale(1.015) translateZ(0);
   will-change: transform;
-  animation: music-player-spin 20s linear infinite;
-  animation-play-state: paused;
-}
-
-.music-player__disc.is-playing .music-player__cover {
-  animation-play-state: running;
 }
 
 .music-player__cover-scrim {
@@ -378,18 +354,14 @@ onBeforeUnmount(clearPlaybackTimer)
   inset: 0;
   border-radius: 50%;
   background:
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       transparent 38%,
       rgb(4 28 38 / 14%) 54%,
       rgb(3 24 34 / 82%) 82%,
-      rgb(2 20 29 / 92%) 100%
-    ),
-    radial-gradient(
-      circle at 34% 26%,
+      rgb(2 20 29 / 92%) 100%),
+    radial-gradient(circle at 34% 26%,
       rgb(255 255 255 / 18%),
-      transparent 30%
-    );
+      transparent 30%);
   pointer-events: none;
 }
 
@@ -426,7 +398,7 @@ onBeforeUnmount(clearPlaybackTimer)
   z-index: 2;
   width: 88%;
   max-width: 322px;
-  margin-top: -17px;
+  margin-top: -55px;
 }
 
 .music-player__progress {
@@ -581,12 +553,6 @@ onBeforeUnmount(clearPlaybackTimer)
   outline: none;
 }
 
-@keyframes music-player-spin {
-  to {
-    transform: scale(1.015) rotate(360deg) translateZ(0);
-  }
-}
-
 @media (max-width: 480px) {
   .music-player {
     width: min(352px, calc(100vw - 24px));
@@ -635,10 +601,6 @@ onBeforeUnmount(clearPlaybackTimer)
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .music-player__cover {
-    animation: none;
-  }
-
   .music-player__playlist {
     transition: none;
   }
