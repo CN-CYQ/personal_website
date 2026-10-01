@@ -1,27 +1,76 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+
+import AudioPlayerCard from '@/components/music/AudioPlayerCard.vue'
+import { mockTracks, mockWaveform } from '@/components/music/mock'
+import type { PlaybackMode } from '@/components/music/types'
+import HeroWeatherCard from '@/features/weather/components/HeroWeatherCard.vue'
+
 import GrassWaveCanvas from './GrassWaveCanvas.vue'
+
+const currentTrackIndex = ref(0)
+const isPlaying = ref(false)
+const playbackMode = ref<PlaybackMode>('list')
+const playbackPosition = ref(mockTracks[0]?.currentTime ?? 0)
+const currentTrack = computed(() => {
+  const track = mockTracks[currentTrackIndex.value]
+
+  return {
+    ...track,
+    currentTime: playbackPosition.value,
+  }
+})
+
+watch(currentTrackIndex, (index) => {
+  playbackPosition.value = mockTracks[index]?.currentTime ?? 0
+})
+
+function handlePlayPause() {
+  isPlaying.value = !isPlaying.value
+}
+
+function handleNext() {
+  currentTrackIndex.value = (currentTrackIndex.value + 1) % mockTracks.length
+  isPlaying.value = false
+}
+
+function handlePrev() {
+  currentTrackIndex.value =
+    (currentTrackIndex.value - 1 + mockTracks.length) % mockTracks.length
+  isPlaying.value = false
+}
+
+function handleCycleMode() {
+  const modes: PlaybackMode[] = ['list', 'single', 'shuffle']
+  const currentIndex = modes.indexOf(playbackMode.value)
+
+  playbackMode.value = modes[(currentIndex + 1) % modes.length] ?? 'list'
+}
+
+function handleScrub(value: number) {
+  playbackPosition.value = value
+}
 </script>
 
 <template>
   <section class="hero">
     <GrassWaveCanvas />
     <div class="hero__sky-glow" aria-hidden="true" />
+    <HeroWeatherCard class="hero__weather-slot" />
 
     <div class="hero__content">
-      <div class="hero__topline">
-        <span>CN-CYQ</span>
-        <span>Clear sky / 26 C</span>
-      </div>
-
-      <div class="hero__statement">
-        <p class="hero__eyebrow">Personal digital meadow</p>
-        <h1>
-          Personal
-          <span>Website</span>
-        </h1>
-        <p class="hero__summary">
-          作品、记录与互动实验，在明亮生长的数字草甸中展开。
-        </p>
+      <div class="hero__player-slot">
+        <AudioPlayerCard
+          :track="currentTrack"
+          :is-playing="isPlaying"
+          :mode="playbackMode"
+          :waveform="mockWaveform"
+          @play-pause="handlePlayPause"
+          @next="handleNext"
+          @prev="handlePrev"
+          @cycle-mode="handleCycleMode"
+          @scrub="handleScrub"
+        />
       </div>
 
       <div class="hero__bottomline">
@@ -45,25 +94,32 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
   isolation: isolate;
   color: #123d35;
   background:
-    radial-gradient(
-      circle at 82% 8%,
-      rgb(255 252 229 / 96%) 0%,
-      rgb(255 246 210 / 52%) 12%,
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 14% 18%,
-      rgb(255 255 255 / 52%) 0%,
-      transparent 28%
-    ),
-    linear-gradient(
-      180deg,
-      #a8cddd 0%,
-      #cfe3e5 34%,
-      #e7eee3 52%,
-      #92c19e 72%,
-      #3f8b71 100%
-    );
+    linear-gradient(180deg,
+      rgb(5 29 39 / 0%) 0%,
+      rgb(5 29 39 / 0%) 47%,
+      rgb(24 55 57 / 12%) 50%,
+      rgb(13 46 51 / 64%) 56%,
+      rgb(5 30 40 / 92%) 66%,
+      #031d29 100%),
+    linear-gradient(180deg,
+      rgb(236 247 255 / 0%) 16%,
+      rgb(236 247 255 / 16%) 42%,
+      rgb(236 247 255 / 9%) 48%,
+      rgb(236 247 255 / 0%) 54%),
+    radial-gradient(circle at 98% -6%,
+      rgb(255 252 236 / 88%) 0%,
+      rgb(255 239 206 / 44%) 8%,
+      rgb(255 230 195 / 11%) 23%,
+      transparent 36%),
+    radial-gradient(circle at 14% 17%,
+      rgb(255 255 255 / 20%) 0%,
+      transparent 29%),
+    linear-gradient(104deg,
+      #6a9dbd 0%,
+      #80adca 28%,
+      #9fc2d5 52%,
+      #c9cfc9 75%,
+      #f1d9b8 100%);
 }
 
 .hero__sky-glow {
@@ -72,18 +128,21 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 12%) 0%,
-      transparent 42%,
-      rgb(255 248 208 / 10%) 100%
-    ),
-    radial-gradient(
-      circle at 84% 9%,
-      rgb(255 255 255 / 72%) 0%,
-      rgb(255 244 198 / 20%) 7%,
-      transparent 19%
-    );
+    radial-gradient(circle at 92% -1%,
+      rgb(255 255 255 / 84%) 0%,
+      rgb(255 246 214 / 48%) 9%,
+      rgb(255 235 184 / 13%) 25%,
+      transparent 44%),
+    radial-gradient(circle at 62% 38%,
+      rgb(255 255 255 / 78%) 0 1px,
+      transparent 2px),
+    radial-gradient(circle at 69% 28%,
+      rgb(255 255 255 / 62%) 0 2px,
+      transparent 3px),
+    linear-gradient(180deg,
+      rgb(255 255 255 / 8%) 0%,
+      transparent 46%,
+      rgb(255 247 212 / 8%) 100%);
   mix-blend-mode: screen;
 }
 
@@ -94,101 +153,25 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
   flex-direction: column;
   justify-content: space-between;
   min-height: 100svh;
-  padding: 104px clamp(22px, 4vw, 68px) 34px;
+  padding: 88px clamp(22px, 4vw, 68px) 22px;
   pointer-events: none;
 }
 
-.hero__topline,
-.hero__glass-chip {
-  border: 1px solid rgb(255 255 255 / 52%);
-  background: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 38%),
-    rgb(255 255 255 / 14%)
-  );
-  box-shadow:
-    0 16px 44px rgb(37 80 69 / 12%),
-    inset 0 1px 0 rgb(255 255 255 / 55%);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+.hero__weather-slot {
+  position: absolute;
+  z-index: 4;
+  top: clamp(104px, 12vh, 132px);
+  right: clamp(22px, 4vw, 68px);
+  pointer-events: auto;
 }
 
-.hero__topline {
+.hero__player-slot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
   width: 100%;
-  padding: 11px 15px;
-  border-radius: 16px;
-  color: rgb(21 67 57 / 78%);
-  font-size: 0.67rem;
-  font-weight: 750;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.hero__statement {
-  width: min(800px, 84vw);
-  margin-top: auto;
-  margin-bottom: 7vh;
-}
-
-.hero__eyebrow {
-  display: inline-flex;
-  margin-bottom: 18px;
-  padding: 9px 13px;
-  border: 1px solid rgb(255 255 255 / 50%);
-  border-radius: 999px;
-  color: #185b4d;
-  background: rgb(255 255 255 / 24%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 58%);
-  backdrop-filter: blur(16px) saturate(145%);
-  -webkit-backdrop-filter: blur(16px) saturate(145%);
-  font-size: 0.68rem;
-  font-weight: 780;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  color: #103e35;
-  font-size: clamp(3.75rem, 10vw, 9.5rem);
-  font-weight: 520;
-  letter-spacing: -0.07em;
-  line-height: 0.79;
-  text-wrap: balance;
-  text-shadow: 0 8px 32px rgb(255 255 255 / 18%);
-}
-
-h1 span {
-  display: block;
-  margin-left: clamp(24px, 8vw, 132px);
-  color: transparent;
-  -webkit-text-stroke: 1px rgb(255 255 255 / 88%);
-}
-
-.hero__summary {
-  display: inline-flex;
-  max-width: 520px;
-  margin: 28px 0 0;
-  padding: 12px 16px;
-  border: 1px solid rgb(255 255 255 / 46%);
-  border-radius: 14px;
-  color: rgb(17 61 52 / 76%);
-  background: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 34%),
-    rgb(255 255 255 / 12%)
-  );
-  box-shadow:
-    0 14px 38px rgb(42 86 75 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 56%);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  font-size: clamp(0.85rem, 1.05vw, 0.98rem);
-  line-height: 1.65;
+  justify-content: center;
+  padding-top: clamp(148px, 17vh, 196px);
+  pointer-events: auto;
+  transition: padding-top 460ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hero__bottomline {
@@ -201,8 +184,17 @@ h1 span {
 .hero__glass-chip {
   margin: 0;
   padding: 10px 14px;
+  border: 1px solid rgb(255 255 255 / 52%);
   border-radius: 999px;
   color: rgb(16 59 51 / 76%);
+  background: linear-gradient(135deg,
+      rgb(255 255 255 / 38%),
+      rgb(255 255 255 / 14%));
+  box-shadow:
+    0 16px 44px rgb(37 80 69 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 55%);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
   font-size: 0.66rem;
   font-weight: 760;
   letter-spacing: 0.14em;
@@ -232,29 +224,35 @@ h1 span {
 
 @media (max-width: 720px) {
   .hero__content {
-    padding: 94px 20px 24px;
+    padding: 88px 20px 24px;
   }
 
-  .hero__topline span:last-child,
+  .hero__player-slot {
+    padding-top: 336px;
+  }
+
+  .hero__weather-slot {
+    top: 122px;
+    right: 16px;
+  }
+
+  .hero:has(.hero-weather.is-expanded) .hero__player-slot {
+    padding-top: 500px;
+  }
+
   .hero__coordinate {
     display: none;
   }
+}
 
-  .hero__statement {
-    width: 100%;
-    margin-bottom: 5vh;
+@media (max-height: 820px) and (min-width: 721px) {
+  .hero__content {
+    padding-top: 76px;
+    padding-bottom: 18px;
   }
 
-  h1 {
-    font-size: clamp(3.5rem, 19vw, 6rem);
-  }
-
-  h1 span {
-    margin-left: 0;
-  }
-
-  .hero__summary {
-    max-width: 330px;
+  .hero__player-slot {
+    padding-top: 112px;
   }
 }
 </style>
