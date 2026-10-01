@@ -39,27 +39,14 @@ const playbackModeLabel = computed(() => {
 
 <template>
   <div class="player-controls" aria-label="播放控制">
-    <button
-      class="player-controls__button"
-      :class="{ 'is-active': playbackMode !== 'list' }"
-      type="button"
-      :aria-label="`当前为${playbackModeLabel}，点击切换播放模式`"
-      :aria-pressed="playbackMode !== 'list'"
-      :title="playbackModeLabel"
-      @click="emit('cycleMode')"
-    >
-      <svg
-        v-if="playbackMode === 'shuffle'"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path d="M4 7h3.2c4.2 0 5.4 10 9.6 10H20M17 14l3 3-3 3M4 17h3.2c1.2 0 2.2-.8 3.1-2M14 9c.7-.9 1.6-2 2.8-2H20M17 4l3 3-3 3" />
+    <button class="player-controls__button" :class="{ 'is-active': playbackMode !== 'list' }" type="button"
+      :aria-label="`当前为${playbackModeLabel}，点击切换播放模式`" :aria-pressed="playbackMode !== 'list'"
+      :title="playbackModeLabel" @click="emit('cycleMode')">
+      <svg v-if="playbackMode === 'shuffle'" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M4 7h3.2c4.2 0 5.4 10 9.6 10H20M17 14l3 3-3 3M4 17h3.2c1.2 0 2.2-.8 3.1-2M14 9c.7-.9 1.6-2 2.8-2H20M17 4l3 3-3 3" />
       </svg>
-      <svg
-        v-else-if="playbackMode === 'list'"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
+      <svg v-else-if="playbackMode === 'list'" viewBox="0 0 24 24" aria-hidden="true">
         <path d="m17 2 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
       </svg>
       <svg v-else viewBox="0 0 24 24" aria-hidden="true">
@@ -68,26 +55,15 @@ const playbackModeLabel = computed(() => {
       </svg>
     </button>
 
-    <button
-      class="player-controls__button"
-      type="button"
-      aria-label="上一首"
-      title="上一首"
-      @click="emit('previous')"
-    >
+    <button class="player-controls__button" type="button" aria-label="上一首" title="上一首" @click="emit('previous')">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 5v14M18 6.5 9.5 12 18 17.5Z" />
       </svg>
     </button>
 
-    <button
-      class="player-controls__button player-controls__button--primary"
-      type="button"
-      :aria-label="isPlaying ? '暂停' : '播放'"
-      :aria-pressed="isPlaying"
-      :title="isPlaying ? '暂停' : '播放'"
-      @click="emit('playPause')"
-    >
+    <button class="player-controls__button player-controls__button--primary" type="button"
+      :aria-label="isPlaying ? '暂停' : '播放'" :aria-pressed="isPlaying" :title="isPlaying ? '暂停' : '播放'"
+      @click="emit('playPause')">
       <svg v-if="isPlaying" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M8.5 6.5h2.6v11H8.5zM12.9 6.5h2.6v11h-2.6z" />
       </svg>
@@ -96,28 +72,15 @@ const playbackModeLabel = computed(() => {
       </svg>
     </button>
 
-    <button
-      class="player-controls__button"
-      type="button"
-      aria-label="下一首"
-      title="下一首"
-      @click="emit('next')"
-    >
+    <button class="player-controls__button" type="button" aria-label="下一首" title="下一首" @click="emit('next')">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M17 5v14M6 6.5 14.5 12 6 17.5Z" />
       </svg>
     </button>
 
-    <button
-      class="player-controls__button"
-      :class="{ 'is-active': isPlaylistOpen }"
-      type="button"
-      :aria-label="isPlaylistOpen ? '关闭播放列表' : '打开播放列表'"
-      :aria-expanded="isPlaylistOpen"
-      aria-controls="music-player-playlist"
-      title="播放列表"
-      @click="emit('togglePlaylist')"
-    >
+    <button class="player-controls__button" :class="{ 'is-active': isPlaylistOpen }" type="button"
+      :aria-label="isPlaylistOpen ? '关闭播放列表' : '打开播放列表'" :aria-expanded="isPlaylistOpen"
+      aria-controls="music-player-playlist" title="播放列表" @click="emit('togglePlaylist')">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M5 7h14M5 12h10M5 17h7M17.5 13v6l4-3Z" />
       </svg>
@@ -257,5 +220,45 @@ const playbackModeLabel = computed(() => {
   .player-controls__button {
     transition: none;
   }
+}
+</style>
+
+<style>
+[data-theme='dark'] .player-controls__button {
+  border-color: rgb(60 110 160 / 18%);
+  color: rgb(180 210 240 / 90%);
+  background:
+    linear-gradient(145deg, rgb(20 45 75 / 44%), rgb(6 20 38 / 60%)),
+    rgb(8 24 40 / 52%);
+}
+
+[data-theme='dark'] .player-controls__button:hover,
+[data-theme='dark'] .player-controls__button:focus-visible,
+[data-theme='dark'] .player-controls__button.is-active {
+  border-color: rgb(90 150 210 / 40%);
+  background:
+    linear-gradient(145deg, rgb(28 58 90 / 54%), rgb(10 30 50 / 44%)),
+    rgb(10 30 48 / 64%);
+  box-shadow:
+    0 0 18px rgb(50 120 180 / 26%),
+    0 4px 12px rgb(0 4 14 / 40%);
+}
+
+[data-theme='dark'] .player-controls__button--primary {
+  border-color: rgb(80 140 200 / 32%);
+  background:
+    linear-gradient(145deg, rgb(24 55 88 / 46%), rgb(8 24 40 / 64%)),
+    rgb(10 28 46 / 56%);
+  box-shadow:
+    0 0 26px rgb(60 130 200 / 24%),
+    0 6px 18px rgb(0 4 14 / 42%);
+}
+
+[data-theme='dark'] .player-controls__button--primary:hover,
+[data-theme='dark'] .player-controls__button--primary:focus-visible {
+  border-color: rgb(120 170 230 / 48%);
+  box-shadow:
+    0 0 32px rgb(80 150 220 / 32%),
+    0 6px 20px rgb(0 3 12 / 46%);
 }
 </style>

@@ -1,9 +1,8 @@
 :root {
   color: #123d35;
   background: #c8dfe4;
-  font-family:
-    "Helvetica Neue", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
+  font-family: "Helvetica Neue", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   color-scheme: light;
@@ -73,12 +72,11 @@ a {
     rgb(255 255 255 / 38%),
     rgb(255 255 255 / 14%)
   );
-  box-shadow:
-    0 14px 36px rgb(37 80 69 / 11%),
+  box-shadow: 0 14px 36px rgb(37 80 69 / 11%),
     inset 0 1px 0 rgb(255 255 255 / 58%);
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 760;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -99,7 +97,7 @@ a {
   border-radius: 50%;
   color: #1c6555;
   background: rgb(255 255 255 / 22%);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
 }
 
 .site-status {
@@ -114,9 +112,7 @@ a {
   height: 7px;
   border-radius: 50%;
   background: #f5ffd7;
-  box-shadow:
-    0 0 0 4px rgb(255 255 255 / 20%),
-    0 0 16px rgb(255 249 197 / 80%);
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 20%), 0 0 16px rgb(255 249 197 / 80%);
 }
 
 .site-main {
@@ -130,8 +126,11 @@ a {
   justify-items: center;
   padding: 32px;
   color: #123d35;
-  background:
-    radial-gradient(circle at 82% 12%, rgb(255 250 219 / 86%), transparent 28%),
+  background: radial-gradient(
+      circle at 82% 12%,
+      rgb(255 250 219 / 86%),
+      transparent 28%
+    ),
     linear-gradient(180deg, #b6d6e1, #dce9df 55%, #79ad8d);
   text-align: center;
 }
@@ -174,4 +173,78 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #060f1c;
+  --color-text: #bacdde;
+  --color-accent: #6db8df;
+  --color-glass-bg-1: rgb(12 32 56 / 44%);
+  --color-glass-bg-2: rgb(6 20 38 / 16%);
+  --color-glass-border: rgb(80 140 190 / 32%);
+  --color-glass-shadow: rgb(0 8 22 / 32%);
+  --color-glass-inset: rgb(140 190 230 / 14%);
+}
+
+[data-theme='dark'],
+[data-theme='dark'] body,
+[data-theme='dark'] .app-shell {
+  color: #bacdde;
+  background: #060f1c;
+}
+
+[data-theme='dark'] html {
+  background: #060f1c;
+}
+
+[data-theme='dark'] ::selection {
+  color: #060f1c;
+  background: #b0d8f8;
+}
+
+[data-theme='dark'] .site-header {
+  color: rgb(150 190 220 / 84%);
+}
+
+[data-theme='dark'] .brand,
+[data-theme='dark'] .site-status {
+  border-color: rgb(80 140 190 / 32%);
+  color: rgb(150 190 220 / 80%);
+  background: linear-gradient(
+    135deg,
+    rgb(12 32 56 / 44%),
+    rgb(6 20 38 / 16%)
+  );
+  box-shadow:
+    0 14px 36px rgb(0 8 22 / 32%),
+    inset 0 1px 0 rgb(140 190 230 / 14%);
+}
+
+[data-theme='dark'] .brand-mark {
+  border-color: rgb(100 160 210 / 50%);
+  color: #78c0e0;
+  background: rgb(40 100 160 / 16%);
+}
+
+[data-theme='dark'] .site-status__dot {
+  background: #90d8f8;
+  box-shadow:
+    0 0 0 4px rgb(80 140 190 / 14%),
+    0 0 16px rgb(140 200 230 / 40%);
+}
+
+[data-theme='dark'] .site-status {
+  color: rgb(130 170 200 / 66%);
+}
+
+[data-theme='dark'] .not-found {
+  color: #bacdde;
+  background:
+    radial-gradient(circle at 82% 12%, rgb(20 40 60 / 84%), transparent 28%),
+    linear-gradient(180deg, #0c1a30, #0f2038 55%, #142542);
+}
+
+[data-theme='dark'] .not-found .eyebrow {
+  color: #78c0e0;
 }

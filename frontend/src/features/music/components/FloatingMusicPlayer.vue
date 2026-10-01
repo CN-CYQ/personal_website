@@ -614,3 +614,91 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+<style>
+[data-theme='dark'] .music-player {
+  color: #c8e0f0;
+}
+
+[data-theme='dark'] .music-player__disc-shell {
+  background:
+    radial-gradient(circle at 69% 17%,
+      rgb(20 50 80 / 54%) 0%,
+      rgb(14 38 64 / 56%) 18%,
+      rgb(10 28 48 / 66%) 38%,
+      rgb(5 16 30 / 86%) 65%,
+      rgb(2 8 18 / 97%) 100%);
+  box-shadow:
+    0 34px 52px rgb(0 4 14 / 56%),
+    0 0 38px rgb(40 90 150 / 18%),
+    inset 0 1px 0 rgb(140 190 230 / 12%);
+}
+
+[data-theme='dark'] .music-player__disc-shell::before {
+  background: radial-gradient(circle,
+      rgb(50 110 180 / 15%),
+      rgb(30 70 130 / 8%) 58%,
+      transparent 72%);
+}
+
+[data-theme='dark'] .music-player__disc {
+  background: rgb(6 18 32 / 74%);
+  box-shadow:
+    inset 0 0 34px rgb(0 4 14 / 56%),
+    0 16px 32px rgb(0 4 14 / 40%);
+}
+
+[data-theme='dark'] .music-player__cover-scrim {
+  background:
+    linear-gradient(180deg,
+      transparent 38%,
+      rgb(1 6 14 / 22%) 54%,
+      rgb(0 4 12 / 86%) 82%,
+      rgb(0 3 10 / 95%) 100%),
+    radial-gradient(circle at 34% 26%,
+      rgb(140 190 230 / 10%),
+      transparent 30%);
+}
+
+[data-theme='dark'] .music-player__meta h2 {
+  color: #cfe3f4;
+  text-shadow: 0 3px 16px rgb(0 3 10 / 86%);
+}
+
+[data-theme='dark'] .music-player__meta p {
+  color: rgb(160 200 230 / 84%);
+}
+
+[data-theme='dark'] .music-player__rail {
+  background: rgb(100 150 200 / 20%);
+  box-shadow: inset 0 1px 1px rgb(0 4 12 / 40%);
+}
+
+[data-theme='dark'] .music-player__time-row {
+  color: rgb(140 190 220 / 70%);
+}
+
+[data-theme='dark'] .music-player__playlist {
+  border-color: rgb(60 110 160 / 26%);
+  background: rgb(4 14 26 / 95%);
+  box-shadow:
+    0 24px 50px rgb(0 4 14 / 54%),
+    inset 0 1px 0 rgb(130 180 220 / 12%);
+}
+
+[data-theme='dark'] .music-player__playlist-item {
+  color: rgb(150 200 230 / 74%);
+}
+
+[data-theme='dark'] .music-player__playlist-item small {
+  color: rgb(110 150 190 / 46%);
+}
+
+[data-theme='dark'] .music-player__playlist-item:hover,
+[data-theme='dark'] .music-player__playlist-item:focus-visible,
+[data-theme='dark'] .music-player__playlist-item.is-current {
+  border-color: rgb(70 130 180 / 26%);
+  color: #cfe8fc;
+  background: rgb(30 80 140 / 14%);
+}
+</style>

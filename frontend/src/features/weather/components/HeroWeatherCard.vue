@@ -34,7 +34,7 @@ function chartPoints(values: number[]) {
       const y =
         chartTop +
         ((maximumTemperature - value) / temperatureRange) *
-          (chartBottom - chartTop)
+        (chartBottom - chartTop)
 
       return `${x},${y}`
     })
@@ -45,7 +45,7 @@ function chartDotX(index: number) {
   return (
     chartStart +
     (index / Math.max(heroWeather.forecasts.length - 1, 1)) *
-      (chartEnd - chartStart)
+    (chartEnd - chartStart)
   )
 }
 
@@ -53,7 +53,7 @@ function chartDotY(value: number) {
   return (
     chartTop +
     ((maximumTemperature - value) / temperatureRange) *
-      (chartBottom - chartTop)
+    (chartBottom - chartTop)
   )
 }
 
@@ -99,52 +99,25 @@ function collapseExpanded() {
 </script>
 
 <template>
-  <article
-    class="hero-weather"
-    :class="{ 'is-expanded': isExpanded }"
-    @pointerenter="handlePointerEnter"
-    @pointerleave="handlePointerLeave"
-    @keydown.esc="collapseExpanded"
-  >
-    <button
-      class="hero-weather__summary"
-      type="button"
-      :aria-expanded="isExpanded"
-      aria-controls="hero-weather-forecast"
-      @pointerdown="handlePointerDown"
-      @click="toggleExpanded"
-    >
-      <WeatherGlyph
-        class="hero-weather__current-icon"
-        kind="sunny"
-        :size="56"
-      />
+  <article class="hero-weather" :class="{ 'is-expanded': isExpanded }" @pointerenter="handlePointerEnter"
+    @pointerleave="handlePointerLeave" @keydown.esc="collapseExpanded">
+    <button class="hero-weather__summary" type="button" :aria-expanded="isExpanded"
+      aria-controls="hero-weather-forecast" @pointerdown="handlePointerDown" @click="toggleExpanded">
+      <WeatherGlyph class="hero-weather__current-icon" kind="sunny" :size="56" />
       <span class="hero-weather__reading">
         <strong>{{ heroWeather.condition }}</strong>
         <span>{{ heroWeather.temperature }}°C</span>
       </span>
     </button>
 
-    <div
-      id="hero-weather-forecast"
-      class="hero-weather__details"
-      :aria-hidden="!isExpanded"
-    >
+    <div id="hero-weather-forecast" class="hero-weather__details" :aria-hidden="!isExpanded">
       <div class="hero-weather__forecast">
-        <div
-          v-for="day in heroWeather.forecasts"
-          :key="day.id"
-          class="hero-weather__day"
-        >
+        <div v-for="day in heroWeather.forecasts" :key="day.id" class="hero-weather__day">
           <div class="hero-weather__day-heading">
             <strong>{{ day.label }}</strong>
             <time>{{ day.date }}</time>
           </div>
-          <WeatherGlyph
-            class="hero-weather__day-icon"
-            :kind="day.kind"
-            :size="40"
-          />
+          <WeatherGlyph class="hero-weather__day-icon" :kind="day.kind" :size="40" />
           <span class="hero-weather__condition">{{ day.condition }}</span>
           <span class="hero-weather__rain">{{ day.precipitation }}%</span>
           <span class="hero-weather__temperatures">
@@ -154,39 +127,18 @@ function collapseExpanded() {
         </div>
       </div>
 
-      <svg
-        class="hero-weather__chart"
-        :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
-        role="img"
-        aria-label="未来五日高低温折线图"
-        preserveAspectRatio="none"
-      >
+      <svg class="hero-weather__chart" :viewBox="`0 0 ${chartWidth} ${chartHeight}`" role="img" aria-label="未来五日高低温折线图"
+        preserveAspectRatio="none">
         <path class="hero-weather__chart-grid" d="M42 24h416M42 76h416" />
-        <polyline
-          class="hero-weather__chart-line hero-weather__chart-line--low"
-          :points="lowTemperaturePoints"
-        />
-        <polyline
-          class="hero-weather__chart-line hero-weather__chart-line--high"
-          :points="highTemperaturePoints"
-        />
+        <polyline class="hero-weather__chart-line hero-weather__chart-line--low" :points="lowTemperaturePoints" />
+        <polyline class="hero-weather__chart-line hero-weather__chart-line--high" :points="highTemperaturePoints" />
         <g class="hero-weather__chart-dots">
-          <circle
-            v-for="(day, index) in heroWeather.forecasts"
-            :key="`high-${day.id}`"
-            class="hero-weather__chart-dot hero-weather__chart-dot--high"
-            :cx="chartDotX(index)"
-            :cy="chartDotY(day.high)"
-            r="7"
-          />
-          <circle
-            v-for="(day, index) in heroWeather.forecasts"
-            :key="`low-${day.id}`"
-            class="hero-weather__chart-dot hero-weather__chart-dot--low"
-            :cx="chartDotX(index)"
-            :cy="chartDotY(day.low)"
-            r="7"
-          />
+          <circle v-for="(day, index) in heroWeather.forecasts" :key="`high-${day.id}`"
+            class="hero-weather__chart-dot hero-weather__chart-dot--high" :cx="chartDotX(index)"
+            :cy="chartDotY(day.high)" r="7" />
+          <circle v-for="(day, index) in heroWeather.forecasts" :key="`low-${day.id}`"
+            class="hero-weather__chart-dot hero-weather__chart-dot--low" :cx="chartDotX(index)" :cy="chartDotY(day.low)"
+            r="7" />
         </g>
       </svg>
     </div>
@@ -209,12 +161,10 @@ function collapseExpanded() {
   border-radius: 22px;
   color: rgb(19 63 74 / 88%);
   background:
-    linear-gradient(
-      145deg,
+    linear-gradient(145deg,
       rgb(255 255 255 / 34%),
       rgb(217 240 248 / 14%) 56%,
-      rgb(255 255 255 / 20%)
-    ),
+      rgb(255 255 255 / 20%)),
     rgb(164 205 221 / 12%);
   box-shadow:
     0 22px 54px rgb(19 62 71 / 14%),
@@ -387,7 +337,7 @@ function collapseExpanded() {
   display: block;
   width: 100%;
   height: 106px;
-  margin-top: 2px;
+  margin-top: 20px;
   overflow: visible;
   transform: translateY(-16px);
 }
@@ -455,6 +405,7 @@ function collapseExpanded() {
 }
 
 @media (max-width: 1024px) {
+
   .hero-weather,
   .hero-weather.is-expanded {
     width: min(430px, calc(100vw - 40px));
@@ -462,6 +413,7 @@ function collapseExpanded() {
 }
 
 @media (max-width: 640px) {
+
   .hero-weather,
   .hero-weather.is-expanded {
     width: min(350px, calc(100vw - 32px));
@@ -499,11 +451,90 @@ function collapseExpanded() {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .hero-weather,
   .hero-weather__current-icon,
   .hero-weather__details,
   .hero-weather__date {
     transition: none;
   }
+}
+</style>
+
+<style>
+[data-theme='dark'] .hero-weather {
+  border-color: rgb(60 110 160 / 22%);
+  color: rgb(150 200 225 / 80%);
+  background:
+    linear-gradient(145deg,
+      rgb(10 28 48 / 38%),
+      rgb(6 18 34 / 18%) 56%,
+      rgb(12 30 50 / 24%)),
+    rgb(6 20 36 / 14%);
+  box-shadow:
+    0 22px 54px rgb(0 6 18 / 22%),
+    inset 0 1px 0 rgb(140 190 230 / 40%),
+    inset 0 -16px 34px rgb(30 70 120 / 6%);
+}
+
+[data-theme='dark'] .hero-weather.is-expanded {
+  border-color: rgb(80 140 200 / 36%);
+  box-shadow:
+    0 30px 76px rgb(0 4 16 / 28%),
+    inset 0 1px 0 rgb(150 200 240 / 52%),
+    inset 0 -22px 44px rgb(30 70 120 / 8%);
+}
+
+[data-theme='dark'] .hero-weather__reading {
+  color: rgb(160 210 235 / 88%);
+}
+
+[data-theme='dark'] .hero-weather__day {
+  color: rgb(150 200 230 / 76%);
+}
+
+[data-theme='dark'] .hero-weather__day-heading time {
+  color: rgb(110 150 190 / 58%);
+}
+
+[data-theme='dark'] .hero-weather__rain {
+  color: rgb(90 130 170 / 58%);
+}
+
+[data-theme='dark'] .hero-weather__temperatures small {
+  color: rgb(100 140 180 / 56%);
+}
+
+[data-theme='dark'] .hero-weather__chart-grid {
+  stroke: rgb(100 150 190 / 12%);
+}
+
+[data-theme='dark'] .hero-weather__chart-line--high {
+  stroke: rgb(170 210 240 / 76%);
+  filter: drop-shadow(0 4px 8px rgb(30 70 120 / 18%));
+}
+
+[data-theme='dark'] .hero-weather__chart-line--low {
+  stroke: rgb(130 180 220 / 42%);
+}
+
+[data-theme='dark'] .hero-weather__chart-dot {
+  stroke: rgb(190 220 245 / 88%);
+}
+
+[data-theme='dark'] .hero-weather__chart-dot--high {
+  fill: #cfe4f8;
+}
+
+[data-theme='dark'] .hero-weather__chart-dot--low {
+  fill: rgb(130 190 225 / 70%);
+}
+
+[data-theme='dark'] .hero-weather__date {
+  color: rgb(130 180 220 / 66%);
+}
+
+[data-theme='dark'] .hero-weather__date span {
+  color: rgb(90 130 170 / 50%);
 }
 </style>

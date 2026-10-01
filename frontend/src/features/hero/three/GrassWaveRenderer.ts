@@ -107,6 +107,7 @@ const vertexShader = /* glsl */ `
   uniform vec3 uPointer;
   uniform float uPointerInfluence;
   uniform float uPointerSpeed;
+  uniform float uDarkMode;
 
   varying vec3 vColor;
   varying float vAlpha;
@@ -172,14 +173,46 @@ const vertexShader = /* glsl */ `
     );
     float tipLight = pow(top, 3.2);
 
-    vec3 valleyBlue = vec3(0.005, 0.12, 0.19);
-    vec3 deepTeal = vec3(0.012, 0.27, 0.3);
-    vec3 blueGreen = vec3(0.025, 0.4, 0.42);
-    vec3 meadowGreen = vec3(0.075, 0.43, 0.23);
-    vec3 freshGreen = vec3(0.22, 0.51, 0.2);
-    vec3 yellowGreen = vec3(0.57, 0.6, 0.17);
-    vec3 warmGold = vec3(0.96, 0.74, 0.29);
-    vec3 fuzzyTip = vec3(0.8, 0.88, 0.48);
+    vec3 valleyBlue = mix(
+      vec3(0.005, 0.12, 0.19),
+      vec3(0.004, 0.07, 0.12),
+      uDarkMode
+    );
+    vec3 deepTeal = mix(
+      vec3(0.012, 0.27, 0.3),
+      vec3(0.008, 0.13, 0.16),
+      uDarkMode
+    );
+    vec3 blueGreen = mix(
+      vec3(0.025, 0.4, 0.42),
+      vec3(0.015, 0.18, 0.22),
+      uDarkMode
+    );
+    vec3 meadowGreen = mix(
+      vec3(0.075, 0.43, 0.23),
+      vec3(0.04, 0.2, 0.12),
+      uDarkMode
+    );
+    vec3 freshGreen = mix(
+      vec3(0.22, 0.51, 0.2),
+      vec3(0.1, 0.24, 0.1),
+      uDarkMode
+    );
+    vec3 yellowGreen = mix(
+      vec3(0.57, 0.6, 0.17),
+      vec3(0.28, 0.3, 0.08),
+      uDarkMode
+    );
+    vec3 warmGold = mix(
+      vec3(0.96, 0.74, 0.29),
+      vec3(0.44, 0.36, 0.14),
+      uDarkMode
+    );
+    vec3 fuzzyTip = mix(
+      vec3(0.8, 0.88, 0.48),
+      vec3(0.34, 0.38, 0.2),
+      uDarkMode
+    );
 
     vec3 color = mix(valleyBlue, deepTeal, smoothstep(-0.2, 0.46, ridge));
     color = mix(color, blueGreen, smoothstep(0.12, 0.62, ridge));
@@ -192,13 +225,17 @@ const vertexShader = /* glsl */ `
     float microLight = fract(aTint * 17.31 + aPhase * 0.113);
     color *= mix(0.74, 1.08, microLight);
     color *= mix(1.0, 0.62, smoothstep(0.0, 22.0, transformed.z));
-    color += vec3(0.05, 0.18, 0.15) * pointerFalloff * uPointerInfluence;
+    color += mix(
+      vec3(0.05, 0.18, 0.15),
+      vec3(0.02, 0.06, 0.08),
+      uDarkMode
+    ) * pointerFalloff * uPointerInfluence;
 
     float depthFade = smoothstep(-20.0, -5.0, transformed.z)
       * (1.0 - smoothstep(8.0, 18.0, transformed.z));
     float horizonDistance = smoothstep(-13.0, -1.0, transformed.z);
     vec3 horizonHaze = mix(
-      vec3(0.54, 0.72, 0.8),
+      mix(vec3(0.54, 0.72, 0.8), vec3(0.18, 0.28, 0.34), uDarkMode),
       warmGold,
       sunSide * smoothstep(0.48, 0.95, ridge) * 0.34
     );
@@ -291,6 +328,7 @@ export class GrassWaveRenderer {
         uPointer: { value: this.pointerPosition },
         uPointerInfluence: { value: 0 },
         uPointerSpeed: { value: 0 },
+        uDarkMode: { value: 0 },
       },
     })
 
@@ -322,6 +360,13 @@ export class GrassWaveRenderer {
     }
 
     this.animationFrame = requestAnimationFrame(this.renderFrame)
+  }
+
+  setDarkMode(isDark: boolean) {
+    this.material.uniforms.uDarkMode.value = isDark ? 1 : 0
+    if (this.reducedMotion) {
+      this.renderFrame(performance.now())
+    }
   }
 
   dispose() {

@@ -195,3 +195,75 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
   }
 }
 </style>
+
+<style>
+[data-theme='dark'] .hero {
+  color: #b0c8d6;
+  background:
+    linear-gradient(180deg,
+      rgb(0 6 16 / 0%) 0%,
+      rgb(0 6 16 / 0%) 47%,
+      rgb(4 12 22 / 32%) 50%,
+      rgb(2 8 18 / 76%) 56%,
+      rgb(0 5 14 / 95%) 66%,
+      #010814 100%),
+    linear-gradient(180deg,
+      rgb(70 120 180 / 0%) 16%,
+      rgb(70 120 180 / 12%) 42%,
+      rgb(70 120 180 / 6%) 48%,
+      rgb(70 120 180 / 0%) 54%),
+    radial-gradient(circle at 50% -15%,
+      rgb(140 180 220 / 48%) 0%,
+      rgb(100 150 200 / 28%) 12%,
+      rgb(60 110 160 / 10%) 28%,
+      transparent 44%),
+    radial-gradient(circle at 14% 17%,
+      rgb(100 150 200 / 10%) 0%,
+      transparent 29%),
+    linear-gradient(104deg,
+      #081828 0%,
+      #0b1d30 28%,
+      #0f2340 52%,
+      #0e2038 75%,
+      #091828 100%);
+}
+
+[data-theme='dark'] .hero__sky-glow {
+  background:
+    radial-gradient(circle at 50% -8%,
+      rgb(100 160 230 / 42%) 0%,
+      rgb(70 130 200 / 24%) 9%,
+      rgb(40 90 150 / 6%) 25%,
+      transparent 44%),
+    radial-gradient(circle at 62% 38%,
+      rgb(120 180 230 / 22%) 0 1px,
+      transparent 2px),
+    radial-gradient(circle at 69% 28%,
+      rgb(100 160 220 / 16%) 0 2px,
+      transparent 3px),
+    linear-gradient(180deg,
+      rgb(40 80 130 / 4%) 0%,
+      transparent 46%,
+      rgb(20 50 80 / 4%) 100%);
+  mix-blend-mode: screen;
+}
+
+[data-theme='dark'] .hero__glass-chip {
+  border-color: rgb(80 130 180 / 36%);
+  color: rgb(150 190 220 / 74%);
+  background: linear-gradient(135deg,
+      rgb(12 30 52 / 42%),
+      rgb(6 20 40 / 18%));
+  box-shadow:
+    0 16px 44px rgb(0 8 20 / 40%),
+    inset 0 1px 0 rgb(140 190 230 / 20%);
+}
+
+[data-theme='dark'] .hero__interaction-mark {
+  border-color: rgb(100 150 210 / 58%);
+  background: #90d0f0;
+  box-shadow:
+    0 0 0 4px rgb(60 120 180 / 14%),
+    0 0 20px rgb(140 200 240 / 40%);
+}
+</style>

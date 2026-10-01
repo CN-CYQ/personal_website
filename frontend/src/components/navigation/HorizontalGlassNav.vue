@@ -2,10 +2,13 @@
 import { computed, onBeforeUnmount, ref, type CSSProperties } from 'vue'
 import { RouterLink } from 'vue-router'
 
+import { useAppStore, type Theme } from '@/stores/app'
+
 interface SecondaryNavItem {
   label: string
   to?: string
   href?: string
+  action?: string
 }
 
 interface PrimaryNavItem {
@@ -58,6 +61,18 @@ const navItems: PrimaryNavItem[] = [
   },
 ]
 
+const store = useAppStore()
+
+const themeItems: SecondaryNavItem[] = [
+  { label: '浅色模式', action: 'light' },
+  { label: '深色模式', action: 'dark' },
+]
+
+function handleThemeSelect(theme: string) {
+  store.setTheme(theme as Theme)
+  activeId.value = null
+}
+
 const activeId = ref<string | null>(null)
 const navElement = ref<HTMLElement | null>(null)
 let closeTimer: ReturnType<typeof setTimeout> | undefined
@@ -81,6 +96,12 @@ function cancelClose() {
 }
 
 function openMenu(id: string) {
+  if (id === 'theme') {
+    cancelClose()
+    activeId.value = 'theme'
+    return
+  }
+
   const item = navItems.find((candidate) => candidate.id === id)
 
   cancelClose()
@@ -135,80 +156,67 @@ onBeforeUnmount(cancelClose)
 </script>
 
 <template>
-  <nav
-    ref="navElement"
-    class="horizontal-glass-nav"
-    aria-label="主导航"
-    @pointerleave="scheduleClose"
-    @focusout="handleFocusOut"
-  >
+  <nav ref="navElement" class="horizontal-glass-nav" aria-label="主导航" @pointerleave="scheduleClose"
+    @focusout="handleFocusOut">
     <ul class="horizontal-glass-nav__track">
-      <li
-        v-for="item in navItems"
-        :key="item.id"
-        class="horizontal-glass-nav__group"
-        :class="{ 'is-active': activeId === item.id }"
-      >
-        <RouterLink
-          v-if="item.to"
-          class="horizontal-glass-nav__item"
-          :to="item.to"
-          @pointerenter="handleMenuPointerEnter(item.id, $event)"
-          @focus="handleMenuFocus(item.id)"
-        >
+      <li v-for="item in navItems" :key="item.id" class="horizontal-glass-nav__group"
+        :class="{ 'is-active': activeId === item.id }">
+        <RouterLink v-if="item.to" class="horizontal-glass-nav__item" :to="item.to"
+          @pointerenter="handleMenuPointerEnter(item.id, $event)" @focus="handleMenuFocus(item.id)">
           {{ item.label }}
         </RouterLink>
 
-        <button
-          v-else
-          class="horizontal-glass-nav__item"
-          type="button"
-          :aria-expanded="activeId === item.id"
-          aria-haspopup="menu"
-          @pointerenter="handleMenuPointerEnter(item.id, $event)"
-          @pointerdown="handleMenuPointerDown"
-          @focus="handleMenuFocus(item.id)"
-          @click="handleMenuClick(item.id, $event)"
-        >
+        <button v-else class="horizontal-glass-nav__item" type="button" :aria-expanded="activeId === item.id"
+          aria-haspopup="menu" @pointerenter="handleMenuPointerEnter(item.id, $event)"
+          @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus(item.id)"
+          @click="handleMenuClick(item.id, $event)">
           <span>{{ item.label }}</span>
           <svg viewBox="0 0 12 12" aria-hidden="true">
             <path d="m3 4.25 3 3 3-3" />
           </svg>
         </button>
 
-        <div
-          v-if="activeItem?.id === item.id && item.children"
-          class="horizontal-glass-nav__submenu"
-          role="menu"
-          :aria-label="`${item.label}二级导航`"
-        >
-          <template
-            v-for="(child, index) in item.children"
-            :key="child.label"
-          >
-            <RouterLink
-              v-if="child.to"
-              class="horizontal-glass-nav__secondary-item"
-              :style="secondaryStyle(index)"
-              :to="child.to"
-              role="menuitem"
-              @focus="cancelClose"
-            >
+        <div v-if="activeItem?.id === item.id && item.children" class="horizontal-glass-nav__submenu" role="menu"
+          :aria-label="`${item.label}二级导航`">
+          <template v-for="(child, index) in item.children" :key="child.label">
+            <RouterLink v-if="child.to" class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)"
+              :to="child.to" role="menuitem" @focus="cancelClose">
               {{ child.label }}
             </RouterLink>
-            <a
-              v-else
-              class="horizontal-glass-nav__secondary-item"
-              :style="secondaryStyle(index)"
-              :href="child.href"
-              target="_blank"
-              rel="noreferrer"
-              role="menuitem"
-              @focus="cancelClose"
-            >
+            <a v-else class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)" :href="child.href"
+              target="_blank" rel="noreferrer" role="menuitem" @focus="cancelClose">
               {{ child.label }}
             </a>
           </template>
+        </div>
+      </li>
+
+      <li class="horizontal-glass-nav__group horizontal-glass-nav__theme-group"
+        :class="{ 'is-active': activeId === 'theme' }">
+        <button class="horizontal-glass-nav__item horizontal-glass-nav__theme-btn" type="button"
+          :aria-expanded="activeId === 'theme'" :aria-label="`主题切换，当前为${store.theme === 'light' ? '浅色' : '深色'}模式`"
+          aria-haspopup="menu" @pointerenter="handleMenuPointerEnter('theme', $event)"
+          @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus('theme')"
+          @click="handleMenuClick('theme', $event)">
+          <svg v-if="store.theme === 'light'" class="horizontal-glass-nav__theme-icon" viewBox="0 0 24 24"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="5" fill="currentColor" />
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+          <svg v-else class="horizontal-glass-nav__theme-icon horizontal-glass-nav__theme-icon--moon"
+            viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
+          </svg>
+        </button>
+
+        <div v-if="activeId === 'theme'" class="horizontal-glass-nav__submenu" role="menu" aria-label="主题切换">
+          <button v-for="(item, index) in themeItems" :key="item.action" class="horizontal-glass-nav__secondary-item"
+            :class="{ 'is-selected': store.theme === item.action }" :style="secondaryStyle(index)" type="button"
+            role="menuitemradio" :aria-checked="store.theme === item.action" @click="handleThemeSelect(item.action!)"
+            @focus="cancelClose">
+            {{ item.label }}
+          </button>
         </div>
       </li>
     </ul>
@@ -228,17 +236,15 @@ onBeforeUnmount(cancelClose)
 .horizontal-glass-nav__track {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin: 0;
-  padding: 5px;
+  padding: 7px 9px;
   border: 1px solid rgb(255 255 255 / 50%);
   border-radius: 999px;
   background:
-    linear-gradient(
-      135deg,
+    linear-gradient(135deg,
       rgb(255 255 255 / 42%),
-      rgb(255 255 255 / 14%)
-    );
+      rgb(255 255 255 / 14%));
   box-shadow:
     0 16px 38px rgb(35 77 70 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 62%);
@@ -257,13 +263,13 @@ onBeforeUnmount(cancelClose)
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 38px;
+  padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 999px;
   color: rgb(17 66 58 / 78%);
   background: transparent;
-  font-size: 0.69rem;
+  font-size: 0.80rem;
   font-weight: 790;
   letter-spacing: 0.13em;
   line-height: 1;
@@ -277,8 +283,8 @@ onBeforeUnmount(cancelClose)
 }
 
 .horizontal-glass-nav__item svg {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -292,11 +298,9 @@ onBeforeUnmount(cancelClose)
 .horizontal-glass-nav__group.is-active .horizontal-glass-nav__item {
   border-color: rgb(255 255 255 / 68%);
   color: #103e35;
-  background: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 62%),
-    rgb(255 255 255 / 24%)
-  );
+  background: linear-gradient(135deg,
+      rgb(255 255 255 / 62%),
+      rgb(255 255 255 / 24%));
   box-shadow:
     0 9px 22px rgb(30 75 68 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 76%);
@@ -327,11 +331,9 @@ onBeforeUnmount(cancelClose)
   border: 1px solid rgb(255 255 255 / 48%);
   border-radius: 16px;
   background:
-    linear-gradient(
-      135deg,
+    linear-gradient(135deg,
       rgb(255 255 255 / 48%),
-      rgb(255 255 255 / 16%)
-    );
+      rgb(255 255 255 / 16%));
   box-shadow:
     0 18px 42px rgb(28 72 65 / 14%),
     inset 0 1px 0 rgb(255 255 255 / 68%);
@@ -344,14 +346,14 @@ onBeforeUnmount(cancelClose)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
+  min-height: 36px;
   padding: 0 12px;
   border: 1px solid rgb(255 255 255 / 40%);
   border-radius: 999px;
   color: rgb(16 62 54 / 84%);
   background: rgb(255 255 255 / 20%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 52%);
-  font-size: 0.66rem;
+  font-size: 0.74rem;
   font-weight: 760;
   letter-spacing: 0.08em;
   line-height: 1;
@@ -366,7 +368,8 @@ onBeforeUnmount(cancelClose)
 }
 
 .horizontal-glass-nav__secondary-item:hover,
-.horizontal-glass-nav__secondary-item:focus-visible {
+.horizontal-glass-nav__secondary-item:focus-visible,
+.horizontal-glass-nav__secondary-item.is-selected {
   border-color: rgb(255 255 255 / 78%);
   color: #103e35;
   background: rgb(255 255 255 / 50%);
@@ -374,6 +377,33 @@ onBeforeUnmount(cancelClose)
     0 8px 18px rgb(30 75 68 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 78%);
   outline: none;
+}
+
+.horizontal-glass-nav__secondary-item.is-selected {
+  font-weight: 800;
+  box-shadow:
+    0 0 0 1px rgb(30 75 68 / 14%),
+    0 8px 18px rgb(30 75 68 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 78%);
+}
+
+.horizontal-glass-nav__theme-btn {
+  padding: 0 10px;
+}
+
+.horizontal-glass-nav__theme-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  transition: transform 160ms ease;
+}
+
+.horizontal-glass-nav__theme-group.is-active .horizontal-glass-nav__item .horizontal-glass-nav__theme-icon {
+  transform: scale(1.08);
 }
 
 @keyframes horizontal-submenu-in {
@@ -409,7 +439,7 @@ onBeforeUnmount(cancelClose)
   .horizontal-glass-nav__item {
     min-height: 32px;
     padding: 0 8px;
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     letter-spacing: 0.06em;
   }
 
@@ -417,5 +447,72 @@ onBeforeUnmount(cancelClose)
     max-width: calc(100vw - 24px);
     overflow-x: auto;
   }
+}
+</style>
+
+<style>
+[data-theme='dark'] .horizontal-glass-nav__track {
+  border-color: rgb(70 120 180 / 34%);
+  background:
+    linear-gradient(135deg,
+      rgb(10 28 50 / 50%),
+      rgb(6 18 38 / 20%));
+  box-shadow:
+    0 16px 38px rgb(0 6 20 / 40%),
+    inset 0 1px 0 rgb(130 180 220 / 14%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__item {
+  color: rgb(150 195 225 / 76%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__item:hover,
+[data-theme='dark'] .horizontal-glass-nav__item:focus-visible,
+[data-theme='dark'] .horizontal-glass-nav__group.is-active .horizontal-glass-nav__item {
+  border-color: rgb(100 160 210 / 50%);
+  color: #c8e2f8;
+  background: linear-gradient(135deg,
+      rgb(18 42 68 / 54%),
+      rgb(8 28 50 / 30%));
+  box-shadow:
+    0 9px 22px rgb(0 8 24 / 40%),
+    inset 0 1px 0 rgb(160 210 240 / 22%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__submenu::before {
+  border-color: rgb(70 120 180 / 34%);
+  background:
+    linear-gradient(135deg,
+      rgb(12 32 58 / 54%),
+      rgb(6 20 40 / 22%));
+  box-shadow:
+    0 18px 42px rgb(0 6 20 / 42%),
+    inset 0 1px 0 rgb(130 180 220 / 18%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__secondary-item {
+  border-color: rgb(60 110 160 / 30%);
+  color: rgb(150 200 225 / 82%);
+  background: rgb(14 36 56 / 24%);
+  box-shadow: inset 0 1px 0 rgb(120 180 220 / 14%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__secondary-item:hover,
+[data-theme='dark'] .horizontal-glass-nav__secondary-item:focus-visible,
+[data-theme='dark'] .horizontal-glass-nav__secondary-item.is-selected {
+  border-color: rgb(90 150 210 / 56%);
+  color: #cfe6fc;
+  background: rgb(22 48 72 / 54%);
+  box-shadow:
+    0 8px 18px rgb(0 6 20 / 38%),
+    inset 0 1px 0 rgb(160 210 240 / 22%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__secondary-item.is-selected {
+  font-weight: 800;
+  box-shadow:
+    0 0 0 1px rgb(70 130 180 / 25%),
+    0 8px 18px rgb(0 6 20 / 38%),
+    inset 0 1px 0 rgb(160 210 240 / 22%);
 }
 </style>
