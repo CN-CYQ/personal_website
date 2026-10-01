@@ -1,13 +1,17 @@
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+import type { PlaybackMode } from '../types'
+
+const props = withDefaults(
   defineProps<{
     isPlaying?: boolean
-    isShuffled?: boolean
+    playbackMode?: PlaybackMode
     isPlaylistOpen?: boolean
   }>(),
   {
     isPlaying: false,
-    isShuffled: false,
+    playbackMode: 'shuffle',
     isPlaylistOpen: false,
   },
 )
@@ -16,24 +20,51 @@ const emit = defineEmits<{
   playPause: []
   next: []
   previous: []
-  toggleShuffle: []
+  cycleMode: []
   togglePlaylist: []
 }>()
+
+const playbackModeLabel = computed(() => {
+  if (props.playbackMode === 'single') {
+    return '单曲循环'
+  }
+
+  if (props.playbackMode === 'list') {
+    return '列表循环'
+  }
+
+  return '随机播放'
+})
 </script>
 
 <template>
   <div class="player-controls" aria-label="播放控制">
     <button
       class="player-controls__button"
-      :class="{ 'is-active': isShuffled }"
+      :class="{ 'is-active': playbackMode !== 'list' }"
       type="button"
-      :aria-label="isShuffled ? '关闭随机播放' : '开启随机播放'"
-      :aria-pressed="isShuffled"
-      title="随机播放"
-      @click="emit('toggleShuffle')"
+      :aria-label="`当前为${playbackModeLabel}，点击切换播放模式`"
+      :aria-pressed="playbackMode !== 'list'"
+      :title="playbackModeLabel"
+      @click="emit('cycleMode')"
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true">
+      <svg
+        v-if="playbackMode === 'shuffle'"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
         <path d="M4 7h3.2c4.2 0 5.4 10 9.6 10H20M17 14l3 3-3 3M4 17h3.2c1.2 0 2.2-.8 3.1-2M14 9c.7-.9 1.6-2 2.8-2H20M17 4l3 3-3 3" />
+      </svg>
+      <svg
+        v-else-if="playbackMode === 'list'"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="m17 2 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
+      </svg>
+      <svg v-else viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m17 2 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
+        <path d="M11.5 15v-4l-2 1" />
       </svg>
     </button>
 

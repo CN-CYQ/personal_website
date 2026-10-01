@@ -31,15 +31,17 @@ export const demoTracks: DemoTrack[] = [
 ]
 
 function buildWaveform(barCount: number) {
-  return Array.from({ length: barCount }, (_, index) => {
-    const position = index / Math.max(barCount - 1, 1)
-    const envelope = 0.26 + Math.sin(Math.PI * position) * 0.74
-    const primary = Math.abs(Math.sin(position * 31 + 0.7))
-    const secondary = Math.abs(Math.cos(position * 17 + 1.3))
-    const height = 12 + envelope * 48 + primary * 29 + secondary * 13
+  const halfCount = Math.ceil(barCount / 2)
+  const half = Array.from({ length: halfCount }, (_, index) => {
+    const centerWeight = halfCount <= 1 ? 1 : index / (halfCount - 1)
+    const crest = Math.abs(Math.sin(index * 1.31 + 0.4))
+    const ripple = Math.abs(Math.cos(index * 0.72 + 0.6))
+    const height = 16 + centerWeight * 60 + crest * 10 + ripple * 7
 
     return Math.round(Math.min(100, height))
   })
+
+  return [...half, ...half.slice(0, barCount - halfCount).reverse()]
 }
 
 export const demoWaveform = buildWaveform(40)

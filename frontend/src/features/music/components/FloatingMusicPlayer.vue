@@ -4,18 +4,20 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { demoTracks, demoWaveform } from '../demo'
 import {
   clamp,
+  cyclePlaybackMode,
   formatTime,
   nextTrackIndex,
   previousTrackIndex,
   progressRatio,
 } from '../playback'
+import type { PlaybackMode } from '../types'
 
 import AudioSpectrum from './AudioSpectrum.vue'
 import PlayerControls from './PlayerControls.vue'
 
 const currentTrackIndex = ref(0)
 const isPlaying = ref(false)
-const isShuffled = ref(false)
+const playbackMode = ref<PlaybackMode>('shuffle')
 const isPlaylistOpen = ref(false)
 const elapsedSeconds = ref(demoTracks[0]?.startTime ?? 0)
 const isSeeking = ref(false)
@@ -46,12 +48,19 @@ function syncPlaybackTimer() {
 
   playbackTimer = window.setInterval(() => {
     if (elapsedSeconds.value >= duration.value - 1) {
-      handleNext()
+      if (playbackMode.value === 'single') {
+        elapsedSeconds.value = 0
+      } else {
+        handleNext()
+      }
       return
     }
 
-    elapsedSeconds.value += 1
-  }, 1000)
+    elapsedSeconds.value = Math.min(
+      elapsedSeconds.value + 0.25,
+      duration.value,
+    )
+  }, 250)
 }
 
 function selectTrack(index: number) {
@@ -68,7 +77,7 @@ function handleNext() {
   currentTrackIndex.value = nextTrackIndex(
     currentTrackIndex.value,
     demoTracks.length,
-    isShuffled.value,
+    playbackMode.value === 'shuffle',
   )
   elapsedSeconds.value = currentTrack.value.startTime
 }
@@ -77,7 +86,7 @@ function handlePrevious() {
   currentTrackIndex.value = previousTrackIndex(
     currentTrackIndex.value,
     demoTracks.length,
-    isShuffled.value,
+    playbackMode.value === 'shuffle',
   )
   elapsedSeconds.value = currentTrack.value.startTime
 }
@@ -88,6 +97,10 @@ function handlePlayPause() {
   }
 
   isPlaying.value = !isPlaying.value
+}
+
+function handleCyclePlaybackMode() {
+  playbackMode.value = cyclePlaybackMode(playbackMode.value)
 }
 
 function setSeekFromPointer(event: PointerEvent) {
@@ -172,10 +185,11 @@ onBeforeUnmount(clearPlaybackTimer)
     aria-label="音乐播放器"
     @keydown.esc="closePlaylist"
   >
-    <div class="music-player__ambient" aria-hidden="true" />
-
     <div class="music-player__disc-shell">
-      <div class="music-player__disc">
+      <div
+        class="music-player__disc"
+        :class="{ 'is-playing': isPlaying }"
+      >
         <img
           class="music-player__cover"
           :src="currentTrack.coverUrl"
@@ -236,21 +250,23 @@ onBeforeUnmount(clearPlaybackTimer)
     <PlayerControls
       class="music-player__controls"
       :is-playing="isPlaying"
-      :is-shuffled="isShuffled"
+      :playback-mode="playbackMode"
       :is-playlist-open="isPlaylistOpen"
       @play-pause="handlePlayPause"
       @next="handleNext"
       @previous="handlePrevious"
-      @toggle-shuffle="isShuffled = !isShuffled"
+      @cycle-mode="handleCyclePlaybackMode"
       @toggle-playlist="togglePlaylist"
     />
 
     <div
-      v-if="isPlaylistOpen"
       id="music-player-playlist"
       class="music-player__playlist"
+      :class="{ 'is-open': isPlaylistOpen }"
       role="menu"
       aria-label="播放列表"
+      :aria-hidden="!isPlaylistOpen"
+      :inert="!isPlaylistOpen"
     >
       <button
         v-for="(track, index) in demoTracks"
@@ -278,40 +294,12 @@ onBeforeUnmount(clearPlaybackTimer)
   align-items: center;
   gap: 7px;
   isolation: isolate;
-  padding: 14px 12px 18px;
-  border: 1px solid rgb(215 245 249 / 15%);
-  border-radius: 23px;
+  contain: layout style;
+  padding: 0;
+  border: 0;
   color: #fff;
-  background:
-    linear-gradient(
-      148deg,
-      rgb(103 164 173 / 8%),
-      rgb(17 52 64 / 12%) 48%,
-      rgb(4 27 38 / 20%)
-    ),
-    rgb(5 24 34 / 28%);
-  box-shadow:
-    0 28px 58px rgb(0 18 27 / 22%),
-    inset 0 1px 0 rgb(255 255 255 / 9%);
-  backdrop-filter: blur(13px) saturate(118%);
-  -webkit-backdrop-filter: blur(13px) saturate(118%);
-}
-
-.music-player__ambient {
-  position: absolute;
-  z-index: -1;
-  right: 4%;
-  bottom: -8%;
-  left: 4%;
-  height: 30%;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse,
-    rgb(70 179 181 / 13%),
-    transparent 68%
-  );
-  filter: blur(26px);
-  pointer-events: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .music-player__disc-shell {
@@ -326,11 +314,11 @@ onBeforeUnmount(clearPlaybackTimer)
   background:
     radial-gradient(
       circle at 69% 17%,
-      #a7cad0 0%,
-      #7da5ba 18%,
-      #4d8990 38%,
-      #2a5967 65%,
-      #17323e 100%
+      rgb(167 202 208 / 50%) 0%,
+      rgb(125 165 186 / 52%) 18%,
+      rgb(77 137 144 / 62%) 38%,
+      rgb(42 89 103 / 82%) 65%,
+      rgb(23 50 62 / 96%) 100%
     );
   box-shadow:
     0 34px 52px rgb(0 19 28 / 42%),
@@ -374,8 +362,15 @@ onBeforeUnmount(clearPlaybackTimer)
   border-radius: 50%;
   filter: saturate(0.8) brightness(0.84) contrast(1.02);
   object-fit: cover;
-  transform: scale(1.015);
+  backface-visibility: hidden;
+  transform: scale(1.015) translateZ(0);
+  will-change: transform;
   animation: music-player-spin 20s linear infinite;
+  animation-play-state: paused;
+}
+
+.music-player__disc.is-playing .music-player__cover {
+  animation-play-state: running;
 }
 
 .music-player__cover-scrim {
@@ -429,8 +424,8 @@ onBeforeUnmount(clearPlaybackTimer)
 .music-player__spectrum {
   position: relative;
   z-index: 2;
-  width: 66%;
-  max-width: 236px;
+  width: 88%;
+  max-width: 322px;
   margin-top: -17px;
 }
 
@@ -534,7 +529,25 @@ onBeforeUnmount(clearPlaybackTimer)
     inset 0 1px 0 rgb(255 255 255 / 18%);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
-  animation: music-player-playlist-in 180ms ease-out both;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.98);
+  visibility: hidden;
+  transition:
+    opacity 240ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 240ms;
+}
+
+.music-player__playlist.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  transition:
+    opacity 240ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
 }
 
 .music-player__playlist-item {
@@ -570,19 +583,7 @@ onBeforeUnmount(clearPlaybackTimer)
 
 @keyframes music-player-spin {
   to {
-    transform: scale(1.015) rotate(360deg);
-  }
-}
-
-@keyframes music-player-playlist-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1.015) rotate(360deg) translateZ(0);
   }
 }
 
@@ -590,8 +591,6 @@ onBeforeUnmount(clearPlaybackTimer)
   .music-player {
     width: min(352px, calc(100vw - 24px));
     gap: 6px;
-    padding: 12px 11px 15px;
-    border-radius: 21px;
   }
 
   .music-player__disc-shell {
@@ -599,7 +598,7 @@ onBeforeUnmount(clearPlaybackTimer)
   }
 
   .music-player__spectrum {
-    width: 66%;
+    width: 86%;
   }
 
   .music-player__progress {
@@ -610,7 +609,6 @@ onBeforeUnmount(clearPlaybackTimer)
 @media (max-height: 700px) and (max-width: 720px) {
   .music-player {
     gap: 7px;
-    padding: 11px 12px 12px;
   }
 
   .music-player__disc-shell {
@@ -618,7 +616,7 @@ onBeforeUnmount(clearPlaybackTimer)
   }
 
   .music-player__spectrum {
-    width: 52%;
+    width: 64%;
     margin-top: -11px;
   }
 
@@ -637,13 +635,20 @@ onBeforeUnmount(clearPlaybackTimer)
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .music-player__cover,
-  .music-player__playlist {
+  .music-player__cover {
     animation: none;
+  }
+
+  .music-player__playlist {
+    transition: none;
   }
 
   .music-player__thumb {
     transition: none;
+  }
+
+  .music-player__cover {
+    will-change: auto;
   }
 }
 </style>

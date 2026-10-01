@@ -1,3 +1,5 @@
+import type { PlaybackMode } from './types'
+
 export function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), maximum)
 }
@@ -66,4 +68,16 @@ export function previousTrackIndex(
   }
 
   return (currentIndex - 1 + trackCount) % trackCount
+}
+
+export function cyclePlaybackMode(mode: PlaybackMode): PlaybackMode {
+  if (mode === 'shuffle') {
+    return 'list'
+  }
+
+  if (mode === 'list') {
+    return 'single'
+  }
+
+  return 'shuffle'
 }

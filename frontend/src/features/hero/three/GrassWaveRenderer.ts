@@ -17,6 +17,61 @@ const TAU = Math.PI * 2
 const BLADE_SEGMENTS = 3
 const BLADE_PATH = [0, 0.32, 0.66, 1]
 
+type QualityTier = 'high' | 'balanced' | 'low'
+
+interface QualityProfile {
+  targetCount: number
+  maximumPixelRatio: number
+  frameInterval: number
+}
+
+const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
+  high: {
+    targetCount: 48_000,
+    maximumPixelRatio: 1.25,
+    frameInterval: 1000 / 60,
+  },
+  balanced: {
+    targetCount: 32_000,
+    maximumPixelRatio: 1,
+    frameInterval: 1000 / 30,
+  },
+  low: {
+    targetCount: 12_000,
+    maximumPixelRatio: 0.7,
+    frameInterval: 1000 / 24,
+  },
+}
+
+function detectQualityTier(softwareRenderer: boolean): QualityTier {
+  if (softwareRenderer) {
+    return 'low'
+  }
+
+  const hardwareConcurrency = navigator.hardwareConcurrency || 4
+  const deviceMemory = (
+    navigator as Navigator & { deviceMemory?: number }
+  ).deviceMemory
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches
+
+  if (
+    hardwareConcurrency <= 2 ||
+    (deviceMemory !== undefined && deviceMemory <= 2)
+  ) {
+    return 'low'
+  }
+
+  if (
+    hardwareConcurrency <= 4 ||
+    (deviceMemory !== undefined && deviceMemory <= 4) ||
+    coarsePointer
+  ) {
+    return 'balanced'
+  }
+
+  return 'high'
+}
+
 function detectSoftwareRenderer() {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('webgl')
@@ -184,21 +239,33 @@ export class GrassWaveRenderer {
   private readonly pointerTarget = new Vector3(0, 0.7, 0)
   private readonly pointerPosition = new Vector3(0, 0.7, 0)
   private readonly resizeObserver: ResizeObserver
+  private viewport = { left: 0, top: 0, width: 1, height: 1 }
   private pointerInfluence = 0
   private pointerInfluenceTarget = 0
   private pointerSpeed = 0
   private pointerSpeedTarget = 0
+  private pendingPointerX = 0
+  private pendingPointerY = 0
+  private pointerDirty = false
   private animationFrame = 0
   private startTime = 0
   private lastFrameTime = performance.now()
+  private lastRenderTime = 0
+  private lastWidth = 0
+  private lastHeight = 0
+  private lastPixelRatio = 0
   private disposed = false
   private readonly softwareRenderer = detectSoftwareRenderer()
+  private readonly qualityTier: QualityTier
+  private readonly qualityProfile: QualityProfile
   private readonly reducedMotion = window.matchMedia(
     '(prefers-reduced-motion: reduce)',
   ).matches
 
   constructor(container: HTMLElement) {
     this.container = container
+    this.qualityTier = detectQualityTier(this.softwareRenderer)
+    this.qualityProfile = QUALITY_PROFILES[this.qualityTier]
     this.renderer = new WebGLRenderer({
       alpha: true,
       antialias: !this.softwareRenderer,
@@ -207,6 +274,7 @@ export class GrassWaveRenderer {
     this.renderer.outputColorSpace = SRGBColorSpace
     this.renderer.setClearColor(0x000000, 0)
     this.renderer.domElement.setAttribute('aria-hidden', 'true')
+    this.renderer.domElement.dataset.quality = this.qualityTier
 
     this.camera.position.set(0, 11.5, 11.2)
     this.camera.lookAt(0, 4.6, -0.8)
@@ -246,6 +314,7 @@ export class GrassWaveRenderer {
     this.handleResize()
     this.startTime = performance.now()
     this.lastFrameTime = this.startTime
+    this.lastRenderTime = 0
 
     if (this.reducedMotion) {
       this.renderFrame(this.startTime)
@@ -268,19 +337,17 @@ export class GrassWaveRenderer {
     this.geometry.dispose()
     this.material.dispose()
     this.renderer.dispose()
+    this.renderer.forceContextLoss()
     this.renderer.domElement.remove()
   }
 
   private createGeometry() {
     const width = Math.max(this.container.clientWidth, 320)
     const aspect = width / Math.max(this.container.clientHeight, 320)
-    const targetCount = this.softwareRenderer
-      ? 18_000
-      : width < 640
-        ? 28_000
-        : width < 1100
-          ? 46_000
-          : 72_000
+    const widthScale = width < 640 ? 0.72 : width < 1100 ? 0.84 : 1
+    const targetCount = Math.round(
+      this.qualityProfile.targetCount * widthScale,
+    )
     const columns = Math.max(54, Math.round(Math.sqrt(targetCount * aspect)))
     const rows = Math.ceil(targetCount / columns)
     const bladeCount = columns * rows
@@ -360,8 +427,29 @@ export class GrassWaveRenderer {
   private readonly handleResize = () => {
     const width = Math.max(this.container.clientWidth, 1)
     const height = Math.max(this.container.clientHeight, 1)
-    const maximumPixelRatio = this.softwareRenderer ? 0.62 : 1.5
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, maximumPixelRatio)
+    const pixelRatio = Math.min(
+      window.devicePixelRatio || 1,
+      this.qualityProfile.maximumPixelRatio,
+    )
+
+    if (
+      width === this.lastWidth &&
+      height === this.lastHeight &&
+      pixelRatio === this.lastPixelRatio
+    ) {
+      return
+    }
+
+    this.lastWidth = width
+    this.lastHeight = height
+    this.lastPixelRatio = pixelRatio
+    const bounds = this.container.getBoundingClientRect()
+    this.viewport = {
+      left: bounds.left,
+      top: bounds.top,
+      width: bounds.width,
+      height: bounds.height,
+    }
     const aspect = width / height
     const viewHeight = width < 700 ? 23 : 24
     const halfHeight = viewHeight / 2
@@ -381,26 +469,43 @@ export class GrassWaveRenderer {
   }
 
   private readonly handlePointerMove = (event: PointerEvent) => {
-    const bounds = this.container.getBoundingClientRect()
-    const normalizedX = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
-    const normalizedY = -(((event.clientY - bounds.top) / bounds.height) * 2 - 1)
+    this.pendingPointerX = event.clientX
+    this.pendingPointerY = event.clientY
+    this.pointerDirty = true
+    this.pointerInfluenceTarget = 1
+  }
+
+  private readonly handlePointerLeave = () => {
+    this.pointerDirty = false
+    this.pointerInfluenceTarget = 0
+    this.pointerSpeedTarget = 0
+  }
+
+  private updatePointerTarget() {
+    if (!this.pointerDirty || this.viewport.width <= 0) {
+      return
+    }
+
+    const normalizedX =
+      ((this.pendingPointerX - this.viewport.left) / this.viewport.width) * 2 -
+      1
+    const normalizedY =
+      -(
+        ((this.pendingPointerY - this.viewport.top) / this.viewport.height) *
+          2 -
+        1
+      )
     const previousX = this.normalizedPointer.x
     const previousY = this.normalizedPointer.y
 
     this.normalizedPointer.set(normalizedX, normalizedY)
     this.raycaster.setFromCamera(this.normalizedPointer, this.camera)
     this.raycaster.ray.intersectPlane(this.pointerPlane, this.pointerTarget)
-
-    this.pointerInfluenceTarget = 1
     this.pointerSpeedTarget = Math.min(
       Math.hypot(normalizedX - previousX, normalizedY - previousY) * 3.8,
       1,
     )
-  }
-
-  private readonly handlePointerLeave = () => {
-    this.pointerInfluenceTarget = 0
-    this.pointerSpeedTarget = 0
+    this.pointerDirty = false
   }
 
   private readonly renderFrame = (time: number) => {
@@ -408,6 +513,17 @@ export class GrassWaveRenderer {
       return
     }
 
+    const elapsedSinceLastRender = time - this.lastRenderTime
+
+    if (elapsedSinceLastRender < this.qualityProfile.frameInterval) {
+      this.animationFrame = requestAnimationFrame(this.renderFrame)
+      return
+    }
+
+    this.lastRenderTime =
+      time -
+      (elapsedSinceLastRender % this.qualityProfile.frameInterval)
+    this.updatePointerTarget()
     const elapsed = (time - this.startTime) / 1000
     const delta = Math.min(
       Math.max((time - this.lastFrameTime) / 1000, 0),

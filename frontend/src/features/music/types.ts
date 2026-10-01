@@ -7,3 +7,5 @@ export interface DemoTrack {
   duration: number
   startTime: number
 }
+
+export type PlaybackMode = 'shuffle' | 'list' | 'single'

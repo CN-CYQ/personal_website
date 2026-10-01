@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   clamp,
+  cyclePlaybackMode,
   formatTime,
   nextTrackIndex,
   previousTrackIndex,
@@ -36,5 +37,11 @@ describe('music playback helpers', () => {
   it('clamps arbitrary values', () => {
     expect(clamp(12, 0, 10)).toBe(10)
     expect(clamp(-4, 0, 10)).toBe(0)
+  })
+
+  it('cycles playback mode in the expected order', () => {
+    expect(cyclePlaybackMode('shuffle')).toBe('list')
+    expect(cyclePlaybackMode('list')).toBe('single')
+    expect(cyclePlaybackMode('single')).toBe('shuffle')
   })
 })
