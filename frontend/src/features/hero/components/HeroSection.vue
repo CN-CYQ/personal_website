@@ -7,10 +7,10 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
 
 <template>
   <section class="hero">
-    <GrassWaveCanvas />
+    <!-- <GrassWaveCanvas /> -->
     <div class="hero__sky-glow" aria-hidden="true" />
     <HeroWeatherCard class="hero__weather-slot" />
-    <FloatingMusicPlayer class="hero__player-slot" />
+    <!-- <FloatingMusicPlayer class="hero__player-slot" /> -->
 
     <div class="hero__content">
       <!-- <div class="hero__bottomline">

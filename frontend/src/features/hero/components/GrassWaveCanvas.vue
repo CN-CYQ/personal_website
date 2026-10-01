@@ -31,6 +31,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .grass-wave-canvas {
+  width: 100%;
+  height: 100%;
   position: absolute;
   inset: 0;
   overflow: hidden;
