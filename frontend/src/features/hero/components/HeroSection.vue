@@ -1,27 +1,45 @@
 <script setup lang="ts">
-import HeroWeatherCard from '@/features/weather/components/HeroWeatherCard.vue'
+import DiscoveryGalleryCard from '@/features/home/components/DiscoveryGalleryCard.vue'
+import RecentActivityCard from '@/features/home/components/RecentActivityCard.vue'
 import FloatingMusicPlayer from '@/features/music/components/FloatingMusicPlayer.vue'
 
 import GrassWaveCanvas from './GrassWaveCanvas.vue'
+
+const emit = defineEmits<{
+  explore: []
+}>()
 </script>
 
 <template>
   <section class="hero">
     <GrassWaveCanvas />
     <div class="hero__sky-glow" aria-hidden="true" />
-    <HeroWeatherCard class="hero__weather-slot" />
-    <FloatingMusicPlayer class="hero__player-slot" />
+    <FloatingMusicPlayer id="home-hero-player" class="hero__player-slot" />
+
+    <div class="hero__glass-stack">
+      <DiscoveryGalleryCard />
+      <RecentActivityCard />
+    </div>
 
     <div class="hero__content">
-      <!-- <div class="hero__bottomline">
-        <p class="hero__glass-chip hero__interaction">
-          <span class="hero__interaction-mark" aria-hidden="true" />
-          Move through the meadow
-        </p>
-        <p class="hero__glass-chip hero__coordinate">
-          WIND / 1.18&nbsp;&nbsp; LIGHT / 82%
-        </p>
-      </div> -->
+      <h1 class="hero__headline" aria-label="Hi! Welcome to my channel!">
+        <span class="hero__line hero__line--hi">Hi!</span>
+        <span class="hero__ornament" aria-hidden="true">
+          <i />
+        </span>
+        <span class="hero__line hero__line--welcome">Welcome to my</span>
+        <span class="hero__line hero__line--channel">channel!</span>
+      </h1>
+
+      <button class="hero__explore" type="button" @click="emit('explore')">
+        <span class="hero__explore-icon" aria-hidden="true">
+          <svg viewBox="0 0 34 26">
+            <path d="m3 3 14 10L31 3" />
+            <path d="m3 13 14 10 14-10" />
+          </svg>
+        </span>
+        <span>Explore more</span>
+      </button>
     </div>
   </section>
 </template>
@@ -29,7 +47,8 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
 <style scoped>
 .hero {
   position: relative;
-  height: 100%;
+  height: 100dvh;
+  min-height: 620px;
   overflow: hidden;
   isolation: isolate;
   color: #123d35;
@@ -89,109 +108,238 @@ import GrassWaveCanvas from './GrassWaveCanvas.vue'
 .hero__content {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   height: 100%;
-  padding: 88px clamp(22px, 4vw, 68px) 22px;
   pointer-events: none;
 }
 
-.hero__weather-slot {
+.hero__headline {
   position: absolute;
-  z-index: 4;
-  top: clamp(104px, 12vh, 132px);
-  right: clamp(22px, 4vw, 68px);
-  pointer-events: auto;
+  top: 17%;
+  left: 50%;
+  display: grid;
+  width: min(82vw, 1200px);
+  justify-items: center;
+  margin: 0;
+  color: #f4fbff;
+  font-family: "Iowan Old Style", "Baskerville", Georgia, serif;
+  font-size: clamp(4.2rem, 7vw, 7.2rem);
+  font-weight: 400;
+  line-height: 0.88;
+  text-align: center;
+  text-shadow:
+    0 4px 20px rgb(26 68 76 / 18%),
+    0 18px 52px rgb(251 255 255 / 22%);
+  transform: translateX(-50%);
+}
+
+.hero__line {
+  display: block;
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(28px);
+  animation: hero-line-enter 900ms cubic-bezier(0.2, 0.82, 0.24, 1) forwards;
+}
+
+.hero__line--hi {
+  justify-self: center;
+  animation-delay: 120ms;
+}
+
+.hero__line--welcome {
+  margin-top: 3.8%;
+  justify-self: center;
+  animation-delay: 320ms;
+}
+
+.hero__line--channel {
+  margin-top: 3%;
+  margin-right: 20%;
+  justify-self: end;
+  animation-delay: 520ms;
+}
+
+.hero__ornament {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  margin-top: 2.2%;
+  place-items: center;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+  animation: hero-ornament-enter 700ms ease-out 700ms forwards;
+}
+
+.hero__ornament::before,
+.hero__ornament::after,
+.hero__ornament i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 86%);
+  box-shadow: 0 0 16px rgb(255 255 205 / 82%);
+  content: '';
+}
+
+.hero__ornament::before {
+  transform: translateX(-8px);
+}
+
+.hero__ornament::after {
+  transform: translateX(8px);
 }
 
 .hero__player-slot {
   position: absolute;
-  z-index: 6;
-  bottom: clamp(20px, 4vh, 42px);
-  left: clamp(22px, 4vw, 68px);
+  z-index: 7;
+  bottom: clamp(20px, 4.5vh, 44px);
+  left: clamp(18px, 4.2vw, 70px);
+  transform: scale(0.84);
+  transform-origin: bottom left;
   pointer-events: auto;
 }
 
-.hero__bottomline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.hero__glass-chip {
-  margin: 0;
-  padding: 10px 14px;
-  border: 1px solid rgb(255 255 255 / 52%);
-  border-radius: 999px;
-  color: rgb(16 59 51 / 76%);
-  background: linear-gradient(135deg,
-      rgb(255 255 255 / 38%),
-      rgb(255 255 255 / 14%));
-  box-shadow:
-    0 16px 44px rgb(37 80 69 / 12%),
-    inset 0 1px 0 rgb(255 255 255 / 55%);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  font-size: 0.66rem;
-  font-weight: 760;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.hero__interaction {
-  display: flex;
-  align-items: center;
+.hero__glass-stack {
+  position: absolute;
+  z-index: 8;
+  top: clamp(154px, 23vh, 205px);
+  right: clamp(22px, 4.2vw, 68px);
+  display: grid;
+  width: clamp(260px, 19.2vw, 306px);
   gap: 10px;
 }
 
-.hero__interaction-mark {
-  width: 8px;
-  height: 8px;
-  border: 1px solid rgb(255 255 255 / 86%);
-  border-radius: 50%;
-  background: #e9ffca;
-  box-shadow:
-    0 0 0 4px rgb(255 255 255 / 18%),
-    0 0 20px rgb(255 248 191 / 70%);
+.hero__explore {
+  position: absolute;
+  bottom: clamp(46px, 8vh, 86px);
+  left: 50%;
+  display: inline-grid;
+  align-items: center;
+  grid-template-columns: 46px auto;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: rgb(255 255 255 / 94%);
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 12px rgb(11 51 59 / 34%);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
 }
 
-.hero__coordinate {
-  text-align: right;
+.hero__explore:focus-visible {
+  border-radius: 999px;
+  outline: 1px solid rgb(255 255 255 / 88%);
+  outline-offset: 10px;
+}
+
+.hero__explore-icon {
+  display: grid;
+  width: 46px;
+  height: 42px;
+  place-items: center;
+  filter: drop-shadow(0 8px 14px rgb(10 53 63 / 20%));
+  animation: hero-explore-float 2.4s ease-in-out infinite;
+}
+
+.hero__explore-icon svg {
+  width: 36px;
+  height: 30px;
+  fill: none;
+  stroke: rgb(255 255 255 / 92%);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.hero__explore:hover .hero__explore-icon,
+.hero__explore:focus-visible .hero__explore-icon {
+  transform: translateY(3px);
+}
+
+@keyframes hero-line-enter {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-ornament-enter {
+  to {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+@keyframes hero-explore-float {
+  50% {
+    transform: translateY(8px);
+  }
 }
 
 @media (max-width: 720px) {
-  .hero__content {
-    padding: 88px 20px 24px;
+  .hero__headline {
+    top: 14%;
+    width: min(88vw, 560px);
+    font-size: clamp(3.4rem, 14vw, 5.8rem);
   }
 
   .hero__player-slot {
-    bottom: 16px;
+    bottom: 12px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(0.7);
+    transform-origin: bottom center;
   }
 
-  .hero__weather-slot {
-    top: 122px;
-    right: 16px;
-  }
-
-  .hero__coordinate {
+  .hero__glass-stack {
     display: none;
+  }
+
+  .hero__explore {
+    top: 53%;
+    bottom: auto;
+    grid-template-columns: 34px auto;
+    font-size: 0.68rem;
+  }
+
+  .hero__explore-icon {
+    width: 34px;
+  }
+
+  .hero__explore-icon svg {
+    width: 28px;
   }
 }
 
 @media (max-height: 820px) and (min-width: 721px) {
-  .hero__content {
-    padding-top: 76px;
-    padding-bottom: 18px;
+  .hero__glass-stack {
+    top: 132px;
+    transform: scale(0.83);
+    transform-origin: top right;
+  }
+
+  .hero__headline {
+    font-size: clamp(4rem, 8.2vw, 7.2rem);
   }
 }
 
 @media (max-height: 700px) and (max-width: 720px) {
+  .hero {
+    min-height: 560px;
+  }
+
   .hero__player-slot {
-    bottom: 4px;
+    bottom: -20px;
+  }
+
+  .hero__headline {
+    top: 15%;
+    font-size: 3.2rem;
   }
 }
 </style>

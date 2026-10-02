@@ -14,15 +14,16 @@
 
 html {
   min-width: 320px;
-  height: 100%;
+  min-height: 100%;
   background: #c8dfe4;
 }
 
 body {
   min-width: 320px;
-  height: 100%;
+  min-height: 100dvh;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: #c8dfe4;
 }
 
@@ -44,29 +45,32 @@ a {
 }
 
 #app {
-  height: 100%;
+  min-height: 100%;
 }
 
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow: clip;
   background: #c8dfe4;
 }
 
 .site-header {
-  position: absolute;
-  z-index: 10;
+  position: fixed;
+  z-index: 30;
   top: 0;
   right: 0;
   left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 78px;
-  padding: 0 clamp(22px, 4vw, 68px);
+  min-height: 0;
+  padding: 0;
   color: rgb(18 61 53 / 86%);
+  pointer-events: none;
+}
+
+.site-main {
+  flex: 1;
+  min-height: 0;
 }
 
 .brand,

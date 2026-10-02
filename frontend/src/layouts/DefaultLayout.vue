@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 
 import HorizontalGlassNav from '@/components/navigation/HorizontalGlassNav.vue'
 </script>
@@ -7,17 +7,7 @@ import HorizontalGlassNav from '@/components/navigation/HorizontalGlassNav.vue'
 <template>
   <div class="app-shell">
     <header class="site-header">
-      <RouterLink class="brand" to="/" aria-label="返回首页">
-        <span class="brand-mark">CY</span>
-        <span class="brand-name">CN-CYQ</span>
-      </RouterLink>
-
       <HorizontalGlassNav />
-
-      <div class="site-status">
-        <span class="site-status__dot" aria-hidden="true" />
-        <span>Personal system</span>
-      </div>
     </header>
 
     <main class="site-main">
@@ -30,18 +20,11 @@ import HorizontalGlassNav from '@/components/navigation/HorizontalGlassNav.vue'
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100dvh;
 }
 
 .site-main {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-}
-
-.brand,
-.site-status {
-  position: relative;
-  z-index: 2;
 }
 </style>

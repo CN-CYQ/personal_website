@@ -238,27 +238,31 @@ onBeforeUnmount(() => {
 
     <AudioSpectrum class="music-player__spectrum" :bars="demoWaveform" :is-playing="isPlaying" />
 
-    <div class="music-player__progress">
-      <div ref="progressElement" class="music-player__slider" role="slider" tabindex="0" aria-label="播放进度"
-        :aria-valuemin="0" :aria-valuemax="duration" :aria-valuenow="Math.round(elapsedSeconds)"
-        :aria-valuetext="`${formatTime(elapsedSeconds)} / ${formatTime(duration)}`" @pointerdown="handleSeekPointerDown"
-        @pointermove="handleSeekPointerMove" @pointerup="finishSeeking" @pointercancel="finishSeeking"
-        @keydown="handleSeekKeydown">
-        <span class="music-player__rail" aria-hidden="true">
-          <span class="music-player__rail-fill" :style="{ transform: `scaleX(${progress})` }" />
-        </span>
-        <span class="music-player__thumb" :style="{ left: `${progressPercent}%` }" aria-hidden="true" />
+    <div class="music-player__controls-wrapper">
+      <span class="music-player__controls-glow" aria-hidden="true" />
+
+      <div class="music-player__progress">
+        <div ref="progressElement" class="music-player__slider" role="slider" tabindex="0" aria-label="播放进度"
+          :aria-valuemin="0" :aria-valuemax="duration" :aria-valuenow="Math.round(elapsedSeconds)"
+          :aria-valuetext="`${formatTime(elapsedSeconds)} / ${formatTime(duration)}`"
+          @pointerdown="handleSeekPointerDown" @pointermove="handleSeekPointerMove" @pointerup="finishSeeking"
+          @pointercancel="finishSeeking" @keydown="handleSeekKeydown">
+          <span class="music-player__rail" aria-hidden="true">
+            <span class="music-player__rail-fill" :style="{ transform: `scaleX(${progress})` }" />
+          </span>
+          <span class="music-player__thumb" :style="{ left: `${progressPercent}%` }" aria-hidden="true" />
+        </div>
+
+        <div class="music-player__time-row">
+          <time>{{ formatTime(elapsedSeconds) }}</time>
+          <time>{{ formatTime(duration) }}</time>
+        </div>
       </div>
 
-      <div class="music-player__time-row">
-        <time>{{ formatTime(elapsedSeconds) }}</time>
-        <time>{{ formatTime(duration) }}</time>
-      </div>
+      <PlayerControls class="music-player__controls" :is-playing="isPlaying" :playback-mode="playbackMode"
+        :is-playlist-open="isPlaylistOpen" @play-pause="handlePlayPause" @next="handleNext" @previous="handlePrevious"
+        @cycle-mode="handleCyclePlaybackMode" @toggle-playlist="togglePlaylist" />
     </div>
-
-    <PlayerControls class="music-player__controls" :is-playing="isPlaying" :playback-mode="playbackMode"
-      :is-playlist-open="isPlaylistOpen" @play-pause="handlePlayPause" @next="handleNext" @previous="handlePrevious"
-      @cycle-mode="handleCyclePlaybackMode" @toggle-playlist="togglePlaylist" />
 
     <div id="music-player-playlist" class="music-player__playlist" :class="{ 'is-open': isPlaylistOpen }" role="menu"
       aria-label="播放列表" :aria-hidden="!isPlaylistOpen" :inert="!isPlaylistOpen">
@@ -480,6 +484,64 @@ onBeforeUnmount(() => {
   letter-spacing: 0.01em;
 }
 
+.music-player__controls-wrapper {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: 5px;
+  opacity: 0;
+  transform: translateY(14px);
+  filter: blur(3px);
+  transition:
+    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.music-player__controls-glow {
+  width: 60%;
+  height: 1px;
+  opacity: 0;
+  background: linear-gradient(90deg,
+      transparent,
+      rgb(135 235 242 / 72%) 20%,
+      rgb(200 248 252 / 90%) 50%,
+      rgb(135 235 242 / 72%) 80%,
+      transparent);
+  filter: blur(0.5px);
+  transition:
+    opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.music-player:hover .music-player__controls-wrapper,
+.music-player:focus-within .music-player__controls-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.music-player:hover .music-player__controls-glow,
+.music-player:focus-within .music-player__controls-glow {
+  opacity: 1;
+  width: 82%;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .music-player__controls-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    transition: none;
+  }
+
+  .music-player__controls-glow {
+    opacity: 1;
+    width: 82%;
+    transition: none;
+  }
+}
+
 .music-player__controls {
   margin-top: 5px;
 }
@@ -678,6 +740,15 @@ onBeforeUnmount(() => {
   color: rgb(140 190 220 / 70%);
 }
 
+[data-theme='dark'] .music-player__controls-glow {
+  background: linear-gradient(90deg,
+      transparent,
+      rgb(80 150 210 / 54%) 20%,
+      rgb(130 190 240 / 72%) 50%,
+      rgb(80 150 210 / 54%) 80%,
+      transparent);
+}
+
 [data-theme='dark'] .music-player__playlist {
   border-color: rgb(60 110 160 / 26%);
   background: rgb(4 14 26 / 95%);
@@ -700,5 +771,33 @@ onBeforeUnmount(() => {
   border-color: rgb(70 130 180 / 26%);
   color: #cfe8fc;
   background: rgb(30 80 140 / 14%);
+}
+
+.music-player:hover .player-controls__button,
+.music-player:focus-within .player-controls__button {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .player-controls__button {
+    opacity: 1;
+    translate: 0 0;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .music-player__controls-wrapper {
+    transition: none;
+  }
+
+  .music-player__controls-glow {
+    transition: none;
+  }
+
+  .player-controls__button {
+    transition: none;
+  }
 }
 </style>

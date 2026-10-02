@@ -4,6 +4,8 @@ import { RouterLink } from 'vue-router'
 
 import { useAppStore, type Theme } from '@/stores/app'
 
+import GlobalSearch from './GlobalSearch.vue'
+
 interface SecondaryNavItem {
   label: string
   to?: string
@@ -77,6 +79,7 @@ const activeId = ref<string | null>(null)
 const navElement = ref<HTMLElement | null>(null)
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 let pointerIsDown = false
+let hoverOpenedId: string | null = null
 
 const activeItem = computed(
   () => navItems.find((item) => item.id === activeId.value) ?? null,
@@ -117,6 +120,7 @@ function scheduleClose() {
 
 function handleMenuPointerEnter(id: string, event: PointerEvent) {
   if (event.pointerType !== 'touch') {
+    hoverOpenedId = id
     openMenu(id)
   }
 }
@@ -135,6 +139,12 @@ function handleMenuClick(id: string, event: MouseEvent) {
   cancelClose()
   pointerIsDown = false
 
+  if (hoverOpenedId === id) {
+    hoverOpenedId = null
+    activeId.value = id
+    return
+  }
+
   if (event.detail === 0 || activeId.value !== id) {
     activeId.value = id
     return
@@ -148,6 +158,7 @@ function handleFocusOut(event: FocusEvent) {
 
   if (!(nextTarget instanceof Node) || !navElement.value?.contains(nextTarget)) {
     cancelClose()
+    hoverOpenedId = null
     activeId.value = null
   }
 }
@@ -158,6 +169,15 @@ onBeforeUnmount(cancelClose)
 <template>
   <nav ref="navElement" class="horizontal-glass-nav" aria-label="主导航" @pointerleave="scheduleClose"
     @focusout="handleFocusOut">
+    <div class="horizontal-glass-nav__surface">
+      <RouterLink class="horizontal-glass-nav__brand" to="/" aria-label="返回首页">
+        <span class="horizontal-glass-nav__brand-mark">CY</span>
+        <span class="horizontal-glass-nav__brand-copy">
+          <strong>CN-CYQ</strong>
+          <small>Personal system</small>
+        </span>
+      </RouterLink>
+
     <ul class="horizontal-glass-nav__track">
       <li v-for="item in navItems" :key="item.id" class="horizontal-glass-nav__group"
         :class="{ 'is-active': activeId === item.id }">
@@ -191,53 +211,60 @@ onBeforeUnmount(cancelClose)
         </div>
       </li>
 
-      <li class="horizontal-glass-nav__group horizontal-glass-nav__theme-group"
-        :class="{ 'is-active': activeId === 'theme' }">
-        <button class="horizontal-glass-nav__item horizontal-glass-nav__theme-btn" type="button"
-          :aria-expanded="activeId === 'theme'" :aria-label="`主题切换，当前为${store.theme === 'light' ? '浅色' : '深色'}模式`"
-          aria-haspopup="menu" @pointerenter="handleMenuPointerEnter('theme', $event)"
-          @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus('theme')"
-          @click="handleMenuClick('theme', $event)">
-          <svg v-if="store.theme === 'light'" class="horizontal-glass-nav__theme-icon" viewBox="0 0 24 24"
-            aria-hidden="true">
-            <circle cx="12" cy="12" r="5" fill="currentColor" />
-            <path
-              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-          </svg>
-          <svg v-else class="horizontal-glass-nav__theme-icon horizontal-glass-nav__theme-icon--moon"
-            viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
-          </svg>
-        </button>
-
-        <div v-if="activeId === 'theme'" class="horizontal-glass-nav__submenu" role="menu" aria-label="主题切换">
-          <button v-for="(item, index) in themeItems" :key="item.action" class="horizontal-glass-nav__secondary-item"
-            :class="{ 'is-selected': store.theme === item.action }" :style="secondaryStyle(index)" type="button"
-            role="menuitemradio" :aria-checked="store.theme === item.action" @click="handleThemeSelect(item.action!)"
-            @focus="cancelClose">
-            {{ item.label }}
-          </button>
-        </div>
-      </li>
     </ul>
+
+      <div class="horizontal-glass-nav__actions">
+        <GlobalSearch />
+
+        <div class="horizontal-glass-nav__group horizontal-glass-nav__theme-group"
+          :class="{ 'is-active': activeId === 'theme' }">
+          <button class="horizontal-glass-nav__item horizontal-glass-nav__theme-btn" type="button"
+            :aria-expanded="activeId === 'theme'"
+            :aria-label="`主题切换，当前为${store.theme === 'light' ? '浅色' : '深色'}模式`" aria-haspopup="menu"
+            @pointerenter="handleMenuPointerEnter('theme', $event)" @pointerdown="handleMenuPointerDown"
+            @focus="handleMenuFocus('theme')" @click="handleMenuClick('theme', $event)">
+            <svg v-if="store.theme === 'light'" class="horizontal-glass-nav__theme-icon" viewBox="0 0 24 24"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="5" fill="currentColor" />
+              <path
+                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+            <svg v-else class="horizontal-glass-nav__theme-icon horizontal-glass-nav__theme-icon--moon"
+              viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" />
+            </svg>
+          </button>
+
+          <div v-if="activeId === 'theme'" class="horizontal-glass-nav__submenu" role="menu" aria-label="主题切换">
+            <button v-for="(item, index) in themeItems" :key="item.action"
+              class="horizontal-glass-nav__secondary-item" :class="{ 'is-selected': store.theme === item.action }"
+              :style="secondaryStyle(index)" type="button" role="menuitemradio"
+              :aria-checked="store.theme === item.action" @click="handleThemeSelect(item.action!)" @focus="cancelClose">
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </nav>
 </template>
 
 <style scoped>
 .horizontal-glass-nav {
-  position: absolute;
+  position: fixed;
   z-index: 1;
   top: 16px;
   left: 50%;
+  width: min(92vw, 1420px);
   pointer-events: none;
   transform: translateX(-50%);
 }
 
-.horizontal-glass-nav__track {
-  display: flex;
+.horizontal-glass-nav__surface {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
-  margin: 0;
+  gap: 12px;
   padding: 7px 9px;
   border: 1px solid rgb(255 255 255 / 50%);
   border-radius: 999px;
@@ -250,8 +277,83 @@ onBeforeUnmount(cancelClose)
     inset 0 1px 0 rgb(255 255 255 / 62%);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
+  pointer-events: auto;
+}
+
+.horizontal-glass-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 7px 2px 2px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: rgb(17 66 58 / 88%);
+  white-space: nowrap;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.horizontal-glass-nav__brand:hover,
+.horizontal-glass-nav__brand:focus-visible {
+  border-color: rgb(255 255 255 / 68%);
+  background: rgb(255 255 255 / 28%);
+  outline: none;
+}
+
+.horizontal-glass-nav__brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 68%);
+  border-radius: 50%;
+  color: #1c6555;
+  background: rgb(255 255 255 / 28%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 62%);
+  font-size: 0.64rem;
+  font-weight: 840;
+}
+
+.horizontal-glass-nav__brand-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.horizontal-glass-nav__brand-copy strong {
+  font-size: 0.72rem;
+  font-weight: 840;
+  letter-spacing: 0.08em;
+}
+
+.horizontal-glass-nav__brand-copy small {
+  color: rgb(17 66 58 / 48%);
+  font-size: 0.48rem;
+  font-weight: 680;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.horizontal-glass-nav__track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   list-style: none;
   pointer-events: auto;
+}
+
+.horizontal-glass-nav__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
 }
 
 .horizontal-glass-nav__group {
@@ -264,14 +366,14 @@ onBeforeUnmount(cancelClose)
   justify-content: center;
   gap: 5px;
   min-height: 38px;
-  padding: 0 16px;
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 999px;
   color: rgb(17 66 58 / 78%);
   background: transparent;
-  font-size: 0.80rem;
+  font-size: 0.74rem;
   font-weight: 790;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.08em;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -422,25 +524,40 @@ onBeforeUnmount(cancelClose)
   .horizontal-glass-nav__item {
     padding: 0 11px;
   }
+
+  .horizontal-glass-nav__surface {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 7px;
+  }
+
+  .horizontal-glass-nav__track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 4px;
+  }
+
+  .horizontal-glass-nav__surface {
+    border-radius: 22px;
+  }
 }
 
 @media (max-width: 720px) {
   .horizontal-glass-nav {
-    top: 70px;
-    width: min(360px, calc(100vw - 24px));
+    top: 10px;
+    width: calc(100vw - 20px);
   }
 
   .horizontal-glass-nav__track {
     justify-content: center;
     gap: 1px;
-    padding: 4px;
+    padding-top: 3px;
   }
 
   .horizontal-glass-nav__item {
     min-height: 32px;
     padding: 0 8px;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
   }
 
   .horizontal-glass-nav__submenu {
@@ -448,10 +565,24 @@ onBeforeUnmount(cancelClose)
     overflow-x: auto;
   }
 }
+
+@media (max-width: 520px) {
+  .horizontal-glass-nav__brand-copy {
+    display: none;
+  }
+
+  .horizontal-glass-nav__brand {
+    padding-right: 2px;
+  }
+
+  .horizontal-glass-nav__surface {
+    padding-inline: 6px;
+  }
+}
 </style>
 
 <style>
-[data-theme='dark'] .horizontal-glass-nav__track {
+[data-theme='dark'] .horizontal-glass-nav__surface {
   border-color: rgb(70 120 180 / 34%);
   background:
     linear-gradient(135deg,
@@ -460,6 +591,21 @@ onBeforeUnmount(cancelClose)
   box-shadow:
     0 16px 38px rgb(0 6 20 / 40%),
     inset 0 1px 0 rgb(130 180 220 / 14%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__brand {
+  color: rgb(160 205 235 / 88%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__brand-mark {
+  border-color: rgb(100 160 210 / 38%);
+  color: #8bc7e2;
+  background: rgb(40 100 160 / 16%);
+  box-shadow: inset 0 1px 0 rgb(130 180 220 / 14%);
+}
+
+[data-theme='dark'] .horizontal-glass-nav__brand-copy small {
+  color: rgb(130 175 210 / 48%);
 }
 
 [data-theme='dark'] .horizontal-glass-nav__item {

@@ -119,7 +119,32 @@ const playbackModeLabel = computed(() => {
     filter 160ms ease,
     border-color 160ms ease,
     box-shadow 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    translate 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  translate: 0 10px;
+  transition-delay: 0ms;
+}
+
+.player-controls__button:nth-child(1) {
+  transition-delay: 60ms;
+}
+
+.player-controls__button:nth-child(2) {
+  transition-delay: 120ms;
+}
+
+.player-controls__button:nth-child(3) {
+  transition-delay: 30ms;
+}
+
+.player-controls__button:nth-child(4) {
+  transition-delay: 120ms;
+}
+
+.player-controls__button:nth-child(5) {
+  transition-delay: 60ms;
 }
 
 .player-controls__button svg {

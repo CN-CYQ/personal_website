@@ -2,13 +2,17 @@
 import { onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import { useAppStore } from '@/stores/app'
-import { GrassWaveRenderer } from '@/features/hero/three/GrassWaveRenderer'
 
 const store = useAppStore()
 const container = ref<HTMLDivElement | null>(null)
 const fireflyCanvas = ref<HTMLCanvasElement | null>(null)
-let renderer: GrassWaveRenderer | null = null
+let renderer: {
+  dispose: () => void
+  setDarkMode: (isDark: boolean) => void
+  start: () => void
+} | null = null
 let fireflyAnimationId = 0
+let isDisposed = false
 
 interface Firefly {
   x: number
@@ -127,9 +131,15 @@ function startFireflyLoop() {
   fireflyAnimationId = requestAnimationFrame(animate)
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (container.value) {
     try {
+      const { GrassWaveRenderer } = await import('../three/GrassWaveRenderer')
+
+      if (isDisposed || !container.value) {
+        return
+      }
+
       renderer = new GrassWaveRenderer(container.value)
       renderer.setDarkMode(store.theme === 'dark')
       renderer.start()
@@ -141,6 +151,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  isDisposed = true
   renderer?.dispose()
   renderer = null
   cancelAnimationFrame(fireflyAnimationId)
