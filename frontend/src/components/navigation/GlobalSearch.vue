@@ -174,7 +174,12 @@ onBeforeUnmount(() => {
 <template>
   <div ref="rootElement" class="global-search" role="search">
     <label class="global-search__label" for="global-search-input">全局搜索</label>
-    <div class="global-search__field" :class="{ 'is-open': isOpen }">
+    <div
+      class="global-search__field"
+      :class="{ 'is-open': isOpen }"
+      data-pill-motion
+    >
+      <span class="global-search__circle" data-pill-circle aria-hidden="true" />
       <svg class="global-search__icon" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="11" cy="11" r="6.5" />
         <path d="m16 16 4 4" />
@@ -214,6 +219,7 @@ onBeforeUnmount(() => {
         :key="entry.id"
         class="global-search__result"
         :class="{ 'is-active': index === activeIndex }"
+        :style="{ '--result-delay': `${index * 35}ms` }"
         type="button"
         role="option"
         :aria-selected="index === activeIndex"
@@ -253,35 +259,54 @@ onBeforeUnmount(() => {
 }
 
 .global-search__field {
+  position: relative;
   display: grid;
-  width: clamp(170px, 18vw, 300px);
+  width: clamp(160px, 16vw, 250px);
   min-height: 38px;
   grid-template-columns: 18px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 0 11px;
-  border: 1px solid rgb(255 255 255 / 38%);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 999px;
-  color: rgb(18 61 53 / 62%);
-  background: rgb(255 255 255 / 16%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%);
+  color: var(--nav-pill-text, rgb(200 240 255 / 82%));
+  background: var(--nav-pill-bg, rgb(255 255 255 / 8%));
+  cursor: text;
+  isolation: isolate;
   transition:
-    width 220ms ease,
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
+    color 160ms var(--pill-ease, ease) 70ms,
+    border-color 180ms var(--pill-ease, ease),
+    background-color 180ms var(--pill-ease, ease);
 }
 
+.global-search__field:hover,
 .global-search__field:focus-within,
 .global-search__field.is-open {
-  border-color: rgb(255 255 255 / 68%);
-  background: rgb(255 255 255 / 30%);
-  box-shadow:
-    0 12px 30px rgb(30 75 68 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 54%);
+  border-color: var(--nav-active-outline, rgb(255 255 255 / 42%));
+  color: var(--nav-hover-text, #103e35);
+}
+
+.global-search__field:focus-within {
+  outline: 2px solid var(--nav-active-outline, rgb(255 255 255 / 42%));
+  outline-offset: 2px;
+}
+
+.global-search__circle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 1;
+  display: block;
+  border-radius: 50%;
+  background: var(--nav-hover-fill, rgb(255 255 255 / 90%));
+  pointer-events: none;
+  will-change: transform;
 }
 
 .global-search__icon {
+  position: relative;
+  z-index: 2;
   width: 17px;
   height: 17px;
   fill: none;
@@ -291,6 +316,8 @@ onBeforeUnmount(() => {
 }
 
 .global-search__input {
+  position: relative;
+  z-index: 2;
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -303,7 +330,8 @@ onBeforeUnmount(() => {
 }
 
 .global-search__input::placeholder {
-  color: rgb(18 61 53 / 48%);
+  color: currentColor;
+  opacity: 0.62;
 }
 
 .global-search__input::-webkit-search-cancel-button {
@@ -311,15 +339,17 @@ onBeforeUnmount(() => {
 }
 
 .global-search__shortcut {
+  position: relative;
+  z-index: 2;
   padding: 3px 6px;
-  border: 1px solid rgb(255 255 255 / 38%);
+  border: 1px solid currentColor;
   border-radius: 999px;
-  color: rgb(18 61 53 / 52%);
-  background: rgb(255 255 255 / 16%);
+  color: inherit;
   font-family: inherit;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 760;
   white-space: nowrap;
+  opacity: 0.56;
 }
 
 .global-search__results {
@@ -331,17 +361,16 @@ onBeforeUnmount(() => {
   width: min(320px, calc(100vw - 28px));
   gap: 5px;
   padding: 8px;
-  border: 1px solid rgb(255 255 255 / 48%);
+  border: 1px solid rgb(255 255 255 / 20%);
   border-radius: 16px;
-  color: rgb(16 59 51 / 86%);
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 78%), rgb(233 246 244 / 62%)),
-    rgb(222 240 242 / 80%);
+  color: rgb(214 242 255 / 92%);
+  background: var(--nav-base, rgb(8 28 36 / 78%));
   box-shadow:
-    0 22px 52px rgb(23 62 58 / 20%),
-    inset 0 1px 0 rgb(255 255 255 / 82%);
+    var(--nav-shadow, 0 22px 52px rgb(23 62 58 / 20%)),
+    inset 0 1px 0 rgb(255 255 255 / 16%);
   backdrop-filter: blur(26px) saturate(150%);
   -webkit-backdrop-filter: blur(26px) saturate(150%);
+  animation: global-search-results-in 200ms var(--pill-ease, ease) both;
 }
 
 .global-search__result {
@@ -357,14 +386,21 @@ onBeforeUnmount(() => {
   background: transparent;
   text-align: left;
   cursor: pointer;
+  animation: global-search-result-in 220ms var(--pill-ease, ease) both;
+  animation-delay: var(--result-delay, 0ms);
 }
 
 .global-search__result.is-active,
 .global-search__result:hover,
 .global-search__result:focus-visible {
-  border-color: rgb(255 255 255 / 68%);
-  background: rgb(255 255 255 / 44%);
+  border-color: rgb(255 255 255 / 26%);
+  background: rgb(255 255 255 / 14%);
   outline: none;
+}
+
+.global-search__result:focus-visible {
+  outline: 2px solid var(--nav-active-outline, rgb(255 255 255 / 42%));
+  outline-offset: 2px;
 }
 
 .global-search__result span {
@@ -380,7 +416,7 @@ onBeforeUnmount(() => {
 
 .global-search__result small {
   overflow: hidden;
-  color: rgb(20 66 57 / 62%);
+  color: rgb(190 228 250 / 62%);
   font-size: 0.66rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -400,61 +436,36 @@ onBeforeUnmount(() => {
 .global-search__empty {
   margin: 0;
   padding: 16px 12px;
-  color: rgb(20 66 57 / 62%);
+  color: rgb(190 228 250 / 62%);
   font-size: 0.72rem;
   text-align: center;
 }
 
-[data-theme='dark'] .global-search__field {
-  border-color: rgb(80 140 190 / 26%);
-  color: rgb(150 195 225 / 76%);
-  background: rgb(8 24 44 / 22%);
-  box-shadow: inset 0 1px 0 rgb(130 180 220 / 12%);
+@keyframes global-search-results-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-[data-theme='dark'] .global-search__field:focus-within,
-[data-theme='dark'] .global-search__field.is-open {
-  border-color: rgb(100 160 210 / 50%);
-  background: rgb(14 38 64 / 52%);
-  box-shadow:
-    0 12px 30px rgb(0 6 20 / 32%),
-    inset 0 1px 0 rgb(150 200 240 / 20%);
+@keyframes global-search-result-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-[data-theme='dark'] .global-search__input::placeholder {
-  color: rgb(140 185 215 / 48%);
-}
-
-[data-theme='dark'] .global-search__shortcut {
-  border-color: rgb(80 140 190 / 26%);
-  color: rgb(140 185 215 / 52%);
-  background: rgb(10 30 52 / 26%);
-}
-
-[data-theme='dark'] .global-search__results {
-  border-color: rgb(70 120 180 / 36%);
-  color: rgb(160 205 235 / 88%);
-  background:
-    linear-gradient(145deg, rgb(12 32 58 / 92%), rgb(5 18 36 / 88%)),
-    rgb(5 18 36 / 92%);
-  box-shadow:
-    0 22px 52px rgb(0 6 20 / 52%),
-    inset 0 1px 0 rgb(130 180 220 / 18%);
-}
-
-[data-theme='dark'] .global-search__result.is-active,
-[data-theme='dark'] .global-search__result:hover,
-[data-theme='dark'] .global-search__result:focus-visible {
-  border-color: rgb(80 140 190 / 42%);
-  background: rgb(30 70 110 / 28%);
-}
-
-[data-theme='dark'] .global-search__result small,
-[data-theme='dark'] .global-search__empty {
-  color: rgb(120 165 200 / 68%);
-}
-
-@media (max-width: 1100px) {
+@media (max-width: 1080px) {
   .global-search__field {
     width: clamp(145px, 17vw, 220px);
   }
@@ -464,29 +475,36 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .global-search__field {
-    width: min(260px, 34vw);
+    width: min(240px, 42vw);
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 560px) {
   .global-search__field {
-    width: min(180px, 38vw);
-  }
-}
-
-@media (max-width: 520px) {
-  .global-search__field {
-    width: min(170px, 42vw);
+    width: min(180px, 48vw);
   }
 
   .global-search__results {
     position: fixed;
-    top: 118px;
+    top: 84px;
     right: 14px;
     left: 14px;
     width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-search__field:hover,
+  .global-search__field:focus-within,
+  .global-search__field.is-open {
+    background: var(--nav-hover-fill, rgb(255 255 255 / 90%));
+  }
+
+  .global-search__results,
+  .global-search__result {
+    animation: none;
   }
 }
 </style>
