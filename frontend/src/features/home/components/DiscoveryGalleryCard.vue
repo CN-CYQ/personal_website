@@ -2,17 +2,13 @@
   <article class="gallery-card" aria-label="动态相册，树林下散步">
     <header class="gallery-card__header">
       <p class="gallery-card__eyebrow">动态 · 相册</p>
-      <span class="gallery-card__badge">PICTURES</span>
+      <!-- <span class="gallery-card__badge">PICTURES</span> -->
     </header>
 
     <div class="gallery-card__frame">
-      <img
-        class="gallery-card__image"
-        src="/images/snooze-cover.png"
-        alt="树林与长椅旁的散步照片"
-        width="768"
-        height="512"
-      />
+      <img class="gallery-card__image"
+        src="https://tse2-mm.cn.bing.net/th/id/OIP-C.biQ7tIKJcAl-6-ILyOabEAHaFi?w=228&h=180&c=7&r=0&o=7&pid=1.7&rm=3"
+        alt="树林与长椅旁的散步照片" width="768" height="512" />
       <span class="gallery-card__light" aria-hidden="true" />
     </div>
 
@@ -34,22 +30,21 @@
   display: grid;
   gap: 11px;
   width: 100%;
-  padding: 13px;
-  border: 1px solid rgb(255 255 255 / 58%);
+  padding: 10px 18px 10px;
+  border: 1px solid rgb(255 255 255 / 0%);
   border-radius: 18px;
-  color: rgb(24 73 86 / 82%);
-  background:
-    linear-gradient(145deg,
-      rgb(255 255 255 / 52%),
-      rgb(220 240 246 / 23%) 62%,
-      rgb(255 255 255 / 32%)),
-    rgb(177 211 223 / 16%);
+  color: rgb(255, 255, 255);
+  background: rgb(218 239 243 / 22%) 62%;
+  /* linear-gradient(145deg,
+      rgb(255 255 255 / 44%),
+      rgb(218 239 243 / 22%) 62%,
+      rgb(255 255 255 / 30%)),
+    rgb(162 202 215 / 16%); */
   box-shadow:
-    0 24px 58px rgb(17 57 67 / 17%),
-    inset 0 1px 0 rgb(255 255 255 / 82%),
-    inset 0 -24px 48px rgb(106 164 184 / 8%);
-  backdrop-filter: blur(30px) saturate(155%);
-  -webkit-backdrop-filter: blur(30px) saturate(155%);
+    0 24px 58px rgb(17 57 67 / 17%);
+
+  backdrop-filter: blur(10px) saturate(155%);
+  -webkit-backdrop-filter: blur(10px) saturate(155%);
 }
 
 .gallery-card__header,
@@ -81,10 +76,10 @@
   gap: 6px;
   min-height: 25px;
   padding: 0 11px;
-  border: 1px solid rgb(255 255 255 / 54%);
+  border: 1px solid rgb(92, 201, 236 / 20%);
   border-radius: 999px;
-  color: rgb(31 99 115 / 45%);
-  background: rgb(255 255 255 / 24%);
+  color: rgb(198, 230, 238, 0.986);
+  background: rgb(92, 201, 236, 12.16%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 58%);
   font-size: 0.58rem;
   font-weight: 800;
@@ -122,7 +117,7 @@
 }
 
 .gallery-card__footer h3 {
-  color: rgb(29 85 98 / 82%);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.86rem;
   font-weight: 780;
 }
@@ -130,7 +125,7 @@
 .gallery-card__footer time {
   display: block;
   margin-top: 4px;
-  color: rgb(40 104 120 / 58%);
+  color: rgb(198, 230, 238, 0.986);
   font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
 }

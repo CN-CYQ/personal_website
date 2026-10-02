@@ -21,16 +21,10 @@ const isWeatherExpanded = ref(false)
     <div class="hero__sky-glow" aria-hidden="true" />
     <FloatingMusicPlayer id="home-hero-player" class="hero__player-slot" />
 
-    <div
-      class="hero__glass-stack"
-      :class="{ 'is-weather-expanded': isWeatherExpanded }"
-    >
+    <div class="hero__glass-stack" :class="{ 'is-weather-expanded': isWeatherExpanded }">
       <div class="hero__weather-slot">
-        <HeroWeatherCard
-          class="hero__weather-card"
-          instance-id="hero-weather"
-          @update:expanded="isWeatherExpanded = $event"
-        />
+        <HeroWeatherCard class="hero__weather-card" instance-id="hero-weather"
+          @update:expanded="isWeatherExpanded = $event" />
       </div>
       <div class="hero__stack-item hero__stack-item--gallery">
         <DiscoveryGalleryCard />
@@ -43,9 +37,9 @@ const isWeatherExpanded = ref(false)
     <div class="hero__content">
       <h1 class="hero__headline" aria-label="Hi! Welcome to my channel!">
         <span class="hero__line hero__line--hi">Hi!</span>
-        <span class="hero__ornament" aria-hidden="true">
+        <!-- <span class="hero__ornament" aria-hidden="true">
           <i />
-        </span>
+        </span> -->
         <span class="hero__line hero__line--welcome">Welcome to my</span>
         <span class="hero__line hero__line--channel">channel!</span>
       </h1>
@@ -131,7 +125,7 @@ const isWeatherExpanded = ref(false)
   left: 50%;
   display: grid;
   width: min(82vw, 1200px);
-  justify-items: center;
+  justify-items: start;
   margin: 0;
   color: #f4fbff;
   font-family: "Iowan Old Style", "Baskerville", Georgia, serif;
@@ -218,7 +212,7 @@ const isWeatherExpanded = ref(false)
   top: clamp(154px, 23vh, 205px);
   right: clamp(22px, 4.2vw, 68px);
   display: grid;
-  width: clamp(260px, 19.2vw, 306px);
+  width: clamp(290px, 19.2vw, 306px);
   gap: 10px;
   transform: scale(0.94);
   transform-origin: top right;

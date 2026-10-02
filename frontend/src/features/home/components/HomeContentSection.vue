@@ -54,12 +54,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
 </script>
 
 <template>
-  <section
-    id="home-content"
-    class="home-content"
-    aria-labelledby="home-content-title"
-    tabindex="-1"
-  >
+  <section id="home-content" class="home-content" aria-labelledby="home-content-title" tabindex="-1">
     <div class="home-content__orb home-content__orb--warm" aria-hidden="true" />
     <div class="home-content__orb home-content__orb--mint" aria-hidden="true" />
 
@@ -105,10 +100,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
           </section>
 
           <section class="weather-panel" aria-label="当前天气">
-            <HeroWeatherCard
-              class="weather-panel__card"
-              instance-id="content-weather"
-            />
+            <HeroWeatherCard class="weather-panel__card" instance-id="content-weather" />
           </section>
 
           <section class="content-card profile-note" aria-labelledby="profile-note-title">
@@ -129,11 +121,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
             <span>03 / 42</span>
           </div>
 
-          <article
-            v-for="(post, index) in postPreviews"
-            :key="post.id"
-            class="post-preview"
-          >
+          <article v-for="(post, index) in postPreviews" :key="post.id" class="post-preview">
             <div class="post-preview__index">
               {{ String(index + 1).padStart(2, '0') }}
             </div>
@@ -206,8 +194,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   z-index: 5;
   min-height: 100dvh;
   overflow: hidden;
-  padding: clamp(72px, 10vw, 132px) clamp(18px, 4vw, 68px)
-    clamp(32px, 5vw, 72px);
+  padding: clamp(72px, 10vw, 132px) clamp(18px, 4vw, 68px) clamp(32px, 5vw, 72px);
   color: #153f3d;
   background:
     linear-gradient(180deg,
@@ -239,25 +226,25 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   right: 0;
   left: 0;
   height: clamp(150px, 22vw, 260px);
-  background:
+  /* background:
     linear-gradient(180deg,
       rgb(223 234 227 / 0%) 0%,
       rgb(223 234 227 / 14%) 28%,
       rgb(223 234 227 / 62%) 66%,
       rgb(223 234 227 / 96%) 100%);
   backdrop-filter: blur(22px) saturate(128%);
-  -webkit-backdrop-filter: blur(22px) saturate(128%);
+  -webkit-backdrop-filter: blur(22px) saturate(128%); */
   content: '';
   mask-image: linear-gradient(180deg,
-    transparent 0%,
-    rgb(0 0 0 / 24%) 12%,
-    rgb(0 0 0 / 78%) 56%,
-    #000 100%);
+      transparent 0%,
+      rgb(0 0 0 / 24%) 12%,
+      rgb(0 0 0 / 78%) 56%,
+      #000 100%);
   -webkit-mask-image: linear-gradient(180deg,
-    transparent 0%,
-    rgb(0 0 0 / 24%) 12%,
-    rgb(0 0 0 / 78%) 56%,
-    #000 100%);
+      transparent 0%,
+      rgb(0 0 0 / 24%) 12%,
+      rgb(0 0 0 / 78%) 56%,
+      #000 100%);
   pointer-events: none;
 }
 
@@ -273,7 +260,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   right: -80px;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgb(255 228 174 / 66%), transparent 68%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0), transparent 100%);
 }
 
 .home-content__orb--mint {
@@ -299,7 +286,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   gap: 12px;
 }
 
-.home-content__intro > p,
+.home-content__intro>p,
 .content-card__eyebrow,
 .profile-summary__eyebrow {
   margin: 0;
@@ -319,7 +306,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   line-height: 0.98;
 }
 
-.home-content__intro > span {
+.home-content__intro>span {
   max-width: 620px;
   color: rgb(21 63 61 / 68%);
   font-size: clamp(0.88rem, 1.3vw, 1.05rem);
@@ -386,9 +373,9 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   font-size: 1rem;
 }
 
-.content-card > p:not(.content-card__eyebrow),
+.content-card>p:not(.content-card__eyebrow),
 .profile-summary__bio,
-.profile-note > p:last-child {
+.profile-note>p:last-child {
   margin: 0;
   color: rgb(21 63 61 / 68%);
   font-size: 0.78rem;
@@ -479,7 +466,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   font-size: 1.55rem;
 }
 
-.home-content__feed-heading > span {
+.home-content__feed-heading>span {
   color: rgb(28 92 75 / 48%);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
@@ -641,7 +628,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   font-size: 0.68rem;
 }
 
-.home-content__footer > div {
+.home-content__footer>div {
   display: grid;
   gap: 3px;
 }
@@ -699,7 +686,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
 }
 
 [data-theme='dark'] .home-content__orb--warm {
-  background: radial-gradient(circle, rgb(150 111 66 / 30%), transparent 68%);
+  background: radial-gradient(circle, rgb(150 111 66 / 0%), transparent 68%);
 }
 
 [data-theme='dark'] .home-content__orb--mint {
@@ -714,10 +701,10 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   color: #c7deea;
 }
 
-[data-theme='dark'] .home-content__intro > span,
-[data-theme='dark'] .content-card > p:not(.content-card__eyebrow),
+[data-theme='dark'] .home-content__intro>span,
+[data-theme='dark'] .content-card>p:not(.content-card__eyebrow),
 [data-theme='dark'] .profile-summary__bio,
-[data-theme='dark'] .profile-note > p:last-child,
+[data-theme='dark'] .profile-note>p:last-child,
 [data-theme='dark'] .post-preview p {
   color: rgb(168 202 218 / 66%);
 }
@@ -734,7 +721,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
     inset 0 1px 0 rgb(130 180 210 / 14%);
 }
 
-[data-theme='dark'] .home-content__intro > p,
+[data-theme='dark'] .home-content__intro>p,
 [data-theme='dark'] .content-card__eyebrow,
 [data-theme='dark'] .profile-summary__eyebrow,
 [data-theme='dark'] .post-preview__meta span {

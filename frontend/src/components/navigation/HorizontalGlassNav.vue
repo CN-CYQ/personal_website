@@ -174,44 +174,44 @@ onBeforeUnmount(cancelClose)
         <span class="horizontal-glass-nav__brand-mark">CY</span>
         <span class="horizontal-glass-nav__brand-copy">
           <strong>CN-CYQ</strong>
-          <small>Personal system</small>
+          <small>Simply Lovely</small>
         </span>
       </RouterLink>
 
-    <ul class="horizontal-glass-nav__track">
-      <li v-for="item in navItems" :key="item.id" class="horizontal-glass-nav__group"
-        :class="{ 'is-active': activeId === item.id }">
-        <RouterLink v-if="item.to" class="horizontal-glass-nav__item" :to="item.to"
-          @pointerenter="handleMenuPointerEnter(item.id, $event)" @focus="handleMenuFocus(item.id)">
-          {{ item.label }}
-        </RouterLink>
+      <ul class="horizontal-glass-nav__track">
+        <li v-for="item in navItems" :key="item.id" class="horizontal-glass-nav__group"
+          :class="{ 'is-active': activeId === item.id }">
+          <RouterLink v-if="item.to" class="horizontal-glass-nav__item" :to="item.to"
+            @pointerenter="handleMenuPointerEnter(item.id, $event)" @focus="handleMenuFocus(item.id)">
+            {{ item.label }}
+          </RouterLink>
 
-        <button v-else class="horizontal-glass-nav__item" type="button" :aria-expanded="activeId === item.id"
-          aria-haspopup="menu" @pointerenter="handleMenuPointerEnter(item.id, $event)"
-          @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus(item.id)"
-          @click="handleMenuClick(item.id, $event)">
-          <span>{{ item.label }}</span>
-          <svg viewBox="0 0 12 12" aria-hidden="true">
-            <path d="m3 4.25 3 3 3-3" />
-          </svg>
-        </button>
+          <button v-else class="horizontal-glass-nav__item" type="button" :aria-expanded="activeId === item.id"
+            aria-haspopup="menu" @pointerenter="handleMenuPointerEnter(item.id, $event)"
+            @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus(item.id)"
+            @click="handleMenuClick(item.id, $event)">
+            <span>{{ item.label }}</span>
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="m3 4.25 3 3 3-3" />
+            </svg>
+          </button>
 
-        <div v-if="activeItem?.id === item.id && item.children" class="horizontal-glass-nav__submenu" role="menu"
-          :aria-label="`${item.label}二级导航`">
-          <template v-for="(child, index) in item.children" :key="child.label">
-            <RouterLink v-if="child.to" class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)"
-              :to="child.to" role="menuitem" @focus="cancelClose">
-              {{ child.label }}
-            </RouterLink>
-            <a v-else class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)" :href="child.href"
-              target="_blank" rel="noreferrer" role="menuitem" @focus="cancelClose">
-              {{ child.label }}
-            </a>
-          </template>
-        </div>
-      </li>
+          <div v-if="activeItem?.id === item.id && item.children" class="horizontal-glass-nav__submenu" role="menu"
+            :aria-label="`${item.label}二级导航`">
+            <template v-for="(child, index) in item.children" :key="child.label">
+              <RouterLink v-if="child.to" class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)"
+                :to="child.to" role="menuitem" @focus="cancelClose">
+                {{ child.label }}
+              </RouterLink>
+              <a v-else class="horizontal-glass-nav__secondary-item" :style="secondaryStyle(index)" :href="child.href"
+                target="_blank" rel="noreferrer" role="menuitem" @focus="cancelClose">
+                {{ child.label }}
+              </a>
+            </template>
+          </div>
+        </li>
 
-    </ul>
+      </ul>
 
       <div class="horizontal-glass-nav__actions">
         <GlobalSearch />
@@ -219,10 +219,10 @@ onBeforeUnmount(cancelClose)
         <div class="horizontal-glass-nav__group horizontal-glass-nav__theme-group"
           :class="{ 'is-active': activeId === 'theme' }">
           <button class="horizontal-glass-nav__item horizontal-glass-nav__theme-btn" type="button"
-            :aria-expanded="activeId === 'theme'"
-            :aria-label="`主题切换，当前为${store.theme === 'light' ? '浅色' : '深色'}模式`" aria-haspopup="menu"
-            @pointerenter="handleMenuPointerEnter('theme', $event)" @pointerdown="handleMenuPointerDown"
-            @focus="handleMenuFocus('theme')" @click="handleMenuClick('theme', $event)">
+            :aria-expanded="activeId === 'theme'" :aria-label="`主题切换，当前为${store.theme === 'light' ? '浅色' : '深色'}模式`"
+            aria-haspopup="menu" @pointerenter="handleMenuPointerEnter('theme', $event)"
+            @pointerdown="handleMenuPointerDown" @focus="handleMenuFocus('theme')"
+            @click="handleMenuClick('theme', $event)">
             <svg v-if="store.theme === 'light'" class="horizontal-glass-nav__theme-icon" viewBox="0 0 24 24"
               aria-hidden="true">
               <circle cx="12" cy="12" r="5" fill="currentColor" />
@@ -236,10 +236,10 @@ onBeforeUnmount(cancelClose)
           </button>
 
           <div v-if="activeId === 'theme'" class="horizontal-glass-nav__submenu" role="menu" aria-label="主题切换">
-            <button v-for="(item, index) in themeItems" :key="item.action"
-              class="horizontal-glass-nav__secondary-item" :class="{ 'is-selected': store.theme === item.action }"
-              :style="secondaryStyle(index)" type="button" role="menuitemradio"
-              :aria-checked="store.theme === item.action" @click="handleThemeSelect(item.action!)" @focus="cancelClose">
+            <button v-for="(item, index) in themeItems" :key="item.action" class="horizontal-glass-nav__secondary-item"
+              :class="{ 'is-selected': store.theme === item.action }" :style="secondaryStyle(index)" type="button"
+              role="menuitemradio" :aria-checked="store.theme === item.action" @click="handleThemeSelect(item.action!)"
+              @focus="cancelClose">
               {{ item.label }}
             </button>
           </div>
@@ -265,16 +265,13 @@ onBeforeUnmount(cancelClose)
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 7px 9px;
-  border: 1px solid rgb(255 255 255 / 50%);
+  padding: 10px 60px;
+  border: 1px solid rgb(255 255 255 / 0%);
   border-radius: 999px;
-  background:
-    linear-gradient(135deg,
-      rgb(255 255 255 / 42%),
-      rgb(255 255 255 / 14%));
+  background: rgba(0, 0, 0, 0.4);
   box-shadow:
-    0 16px 38px rgb(35 77 70 / 12%),
-    inset 0 1px 0 rgb(255 255 255 / 62%);
+    0 16px 38px rgb(35 77 70 / 12%);
+  /* inset 0 1px 0 rgb(255 255 255 / 62%); */
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   pointer-events: auto;
@@ -287,7 +284,7 @@ onBeforeUnmount(cancelClose)
   padding: 2px 7px 2px 2px;
   border: 1px solid transparent;
   border-radius: 999px;
-  color: rgb(17 66 58 / 88%);
+  color: rgba(255, 255, 255, 0.88);
   white-space: nowrap;
   transition:
     border-color 160ms ease,
@@ -306,11 +303,11 @@ onBeforeUnmount(cancelClose)
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 68%);
+  border: 1px solid rgb(255 255 255 / 38%);
   border-radius: 50%;
-  color: #1c6555;
-  background: rgb(255 255 255 / 28%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 62%);
+  color: #BDEFFF;
+  background: rgb(255 255 255 / 0%);
+  /* box-shadow: inset 0 1px 0 rgb(255 255 255 / 62%); */
   font-size: 0.64rem;
   font-weight: 840;
 }
@@ -327,7 +324,7 @@ onBeforeUnmount(cancelClose)
 }
 
 .horizontal-glass-nav__brand-copy small {
-  color: rgb(17 66 58 / 48%);
+  color: rgba(255, 255, 255, 0.511);
   font-size: 0.48rem;
   font-weight: 680;
   letter-spacing: 0.1em;
@@ -369,7 +366,7 @@ onBeforeUnmount(cancelClose)
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 999px;
-  color: rgb(17 66 58 / 78%);
+  color: rgb(189, 239, 255, 78%);
   background: transparent;
   font-size: 0.74rem;
   font-weight: 790;
