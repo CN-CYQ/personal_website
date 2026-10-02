@@ -60,9 +60,9 @@ export function useHomeScrollTransition({
       transition.fromTo(
         content.value,
         {
-          y: 92,
-          opacity: 0,
-          scale: 0.975,
+          y: 56,
+          opacity: 0.24,
+          scale: 0.992,
         },
         {
           y: 0,

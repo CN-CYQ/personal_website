@@ -105,7 +105,10 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
           </section>
 
           <section class="weather-panel" aria-label="当前天气">
-            <HeroWeatherCard class="weather-panel__card" />
+            <HeroWeatherCard
+              class="weather-panel__card"
+              instance-id="content-weather"
+            />
           </section>
 
           <section class="content-card profile-note" aria-labelledby="profile-note-title">
@@ -207,7 +210,14 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
     clamp(32px, 5vw, 72px);
   color: #153f3d;
   background:
-    linear-gradient(180deg, #dfeae3 0%, #cadfd6 36%, #b8d2c9 100%);
+    linear-gradient(180deg,
+      rgb(223 234 227 / 0%) 0%,
+      rgb(223 234 227 / 0%) 7%,
+      rgb(223 234 227 / 34%) 15%,
+      rgb(223 234 227 / 82%) 23%,
+      #dfeae3 31%,
+      #cadfd6 52%,
+      #b8d2c9 100%);
 }
 
 .home-content::before {
@@ -219,6 +229,35 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   background-size: 44px 44px;
   content: '';
   mask-image: linear-gradient(180deg, rgb(0 0 0 / 42%), transparent 76%);
+  pointer-events: none;
+}
+
+.home-content::after {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: clamp(150px, 22vw, 260px);
+  background:
+    linear-gradient(180deg,
+      rgb(223 234 227 / 0%) 0%,
+      rgb(223 234 227 / 14%) 28%,
+      rgb(223 234 227 / 62%) 66%,
+      rgb(223 234 227 / 96%) 100%);
+  backdrop-filter: blur(22px) saturate(128%);
+  -webkit-backdrop-filter: blur(22px) saturate(128%);
+  content: '';
+  mask-image: linear-gradient(180deg,
+    transparent 0%,
+    rgb(0 0 0 / 24%) 12%,
+    rgb(0 0 0 / 78%) 56%,
+    #000 100%);
+  -webkit-mask-image: linear-gradient(180deg,
+    transparent 0%,
+    rgb(0 0 0 / 24%) 12%,
+    rgb(0 0 0 / 78%) 56%,
+    #000 100%);
   pointer-events: none;
 }
 
@@ -417,7 +456,7 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
 }
 
 .weather-panel {
-  display: grid;
+  display: none;
   justify-items: stretch;
 }
 
@@ -634,13 +673,29 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
 [data-theme='dark'] .home-content {
   color: #b6d0dc;
   background:
-    linear-gradient(180deg, #061521 0%, #0a1e2b 42%, #102b33 100%);
+    linear-gradient(180deg,
+      rgb(6 21 33 / 0%) 0%,
+      rgb(6 21 33 / 0%) 7%,
+      rgb(6 21 33 / 36%) 15%,
+      rgb(6 21 33 / 84%) 23%,
+      #061521 31%,
+      #0a1e2b 52%,
+      #102b33 100%);
 }
 
 [data-theme='dark'] .home-content::before {
   background-image:
     linear-gradient(rgb(110 170 200 / 5%) 1px, transparent 1px),
     linear-gradient(90deg, rgb(110 170 200 / 5%) 1px, transparent 1px);
+}
+
+[data-theme='dark'] .home-content::after {
+  background:
+    linear-gradient(180deg,
+      rgb(6 21 33 / 0%) 0%,
+      rgb(6 21 33 / 16%) 28%,
+      rgb(6 21 33 / 64%) 66%,
+      rgb(6 21 33 / 96%) 100%);
 }
 
 [data-theme='dark'] .home-content__orb--warm {
@@ -760,6 +815,10 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
   .profile-summary,
   .weather-panel {
     grid-column: 1 / -1;
+  }
+
+  .weather-panel {
+    display: grid;
   }
 
   .home-content__sidebar--right {

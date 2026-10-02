@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { heroWeather } from '../mock'
 
 import WeatherGlyph from './WeatherGlyph.vue'
 
+const props = withDefaults(
+  defineProps<{
+    instanceId?: string
+  }>(),
+  {
+    instanceId: 'hero-weather',
+  },
+)
+
+const emit = defineEmits<{
+  'update:expanded': [expanded: boolean]
+}>()
+
 const isHovered = ref(false)
 const isPinned = ref(false)
 const isExpanded = computed(() => isHovered.value || isPinned.value)
+const forecastId = computed(() => `${props.instanceId}-forecast`)
 let lastPointerType = ''
+
+watch(
+  isExpanded,
+  (expanded) => {
+    emit('update:expanded', expanded)
+  },
+  { immediate: true },
+)
 
 const chartWidth = 500
 const chartHeight = 112
@@ -102,7 +124,7 @@ function collapseExpanded() {
   <article class="hero-weather" :class="{ 'is-expanded': isExpanded }" @pointerenter="handlePointerEnter"
     @pointerleave="handlePointerLeave" @keydown.esc="collapseExpanded">
     <button class="hero-weather__summary" type="button" :aria-expanded="isExpanded"
-      aria-controls="hero-weather-forecast" @pointerdown="handlePointerDown" @click="toggleExpanded">
+      :aria-controls="forecastId" @pointerdown="handlePointerDown" @click="toggleExpanded">
       <WeatherGlyph class="hero-weather__current-icon" kind="sunny" :size="56" />
       <span class="hero-weather__reading">
         <strong>{{ heroWeather.condition }}</strong>
@@ -110,7 +132,7 @@ function collapseExpanded() {
       </span>
     </button>
 
-    <div id="hero-weather-forecast" class="hero-weather__details" :aria-hidden="!isExpanded">
+    <div :id="forecastId" class="hero-weather__details" :aria-hidden="!isExpanded">
       <div class="hero-weather__forecast">
         <div v-for="day in heroWeather.forecasts" :key="day.id" class="hero-weather__day">
           <div class="hero-weather__day-heading">

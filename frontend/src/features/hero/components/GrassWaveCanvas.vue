@@ -99,6 +99,15 @@ function drawFireflies(context: CanvasRenderingContext2D, width: number, height:
   }
 }
 
+function clearFireflyCanvas() {
+  const canvas = fireflyCanvas.value
+  const context = canvas?.getContext('2d', { alpha: true })
+
+  if (!canvas || !context) return
+
+  context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+}
+
 function startFireflyLoop() {
   if (!fireflyCanvas.value) return
   const canvas = fireflyCanvas.value
@@ -160,7 +169,13 @@ onBeforeUnmount(() => {
 const stopWatch = watch(
   () => store.theme,
   (theme) => {
-    renderer?.setDarkMode(theme === 'dark')
+    const isDark = theme === 'dark'
+
+    renderer?.setDarkMode(isDark)
+
+    if (!isDark) {
+      clearFireflyCanvas()
+    }
   },
 )
 
@@ -171,7 +186,12 @@ onUnmounted(() => {
 
 <template>
   <div ref="container" class="grass-wave-canvas" aria-hidden="true" />
-  <canvas ref="fireflyCanvas" class="firefly-canvas" aria-hidden="true" />
+  <canvas
+    ref="fireflyCanvas"
+    class="firefly-canvas"
+    :class="{ 'is-active': store.theme === 'dark' }"
+    aria-hidden="true"
+  />
 </template>
 
 <style scoped>
@@ -201,7 +221,14 @@ onUnmounted(() => {
   inset: 0;
   width: 100%;
   height: 100%;
+  opacity: 0;
   pointer-events: none;
+  visibility: hidden;
   z-index: 2;
+}
+
+.firefly-canvas.is-active {
+  opacity: 1;
+  visibility: visible;
 }
 </style>

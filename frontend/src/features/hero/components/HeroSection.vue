@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 import DiscoveryGalleryCard from '@/features/home/components/DiscoveryGalleryCard.vue'
 import RecentActivityCard from '@/features/home/components/RecentActivityCard.vue'
 import FloatingMusicPlayer from '@/features/music/components/FloatingMusicPlayer.vue'
+import HeroWeatherCard from '@/features/weather/components/HeroWeatherCard.vue'
 
 import GrassWaveCanvas from './GrassWaveCanvas.vue'
 
 const emit = defineEmits<{
   explore: []
 }>()
+
+const isWeatherExpanded = ref(false)
 </script>
 
 <template>
@@ -16,9 +21,23 @@ const emit = defineEmits<{
     <div class="hero__sky-glow" aria-hidden="true" />
     <FloatingMusicPlayer id="home-hero-player" class="hero__player-slot" />
 
-    <div class="hero__glass-stack">
-      <DiscoveryGalleryCard />
-      <RecentActivityCard />
+    <div
+      class="hero__glass-stack"
+      :class="{ 'is-weather-expanded': isWeatherExpanded }"
+    >
+      <div class="hero__weather-slot">
+        <HeroWeatherCard
+          class="hero__weather-card"
+          instance-id="hero-weather"
+          @update:expanded="isWeatherExpanded = $event"
+        />
+      </div>
+      <div class="hero__stack-item hero__stack-item--gallery">
+        <DiscoveryGalleryCard />
+      </div>
+      <div class="hero__stack-item hero__stack-item--activity">
+        <RecentActivityCard />
+      </div>
     </div>
 
     <div class="hero__content">
@@ -92,12 +111,6 @@ const emit = defineEmits<{
       rgb(255 246 214 / 48%) 9%,
       rgb(255 235 184 / 13%) 25%,
       transparent 44%),
-    radial-gradient(circle at 62% 38%,
-      rgb(255 255 255 / 78%) 0 1px,
-      transparent 2px),
-    radial-gradient(circle at 69% 28%,
-      rgb(255 255 255 / 62%) 0 2px,
-      transparent 3px),
     linear-gradient(180deg,
       rgb(255 255 255 / 8%) 0%,
       transparent 46%,
@@ -207,6 +220,65 @@ const emit = defineEmits<{
   display: grid;
   width: clamp(260px, 19.2vw, 306px);
   gap: 10px;
+  transform: scale(0.94);
+  transform-origin: top right;
+  transition: gap 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero__glass-stack.is-weather-expanded {
+  gap: 0;
+}
+
+.hero__weather-slot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 112px;
+  transition: height 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero__glass-stack.is-weather-expanded .hero__weather-slot {
+  height: 378px;
+}
+
+.hero__stack-item {
+  display: grid;
+  max-height: 340px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: top right;
+  transition:
+    max-height 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero__stack-item--gallery {
+  max-height: 290px;
+}
+
+.hero__stack-item--activity {
+  max-height: 280px;
+}
+
+.hero__glass-stack.is-weather-expanded .hero__stack-item {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.92);
+  pointer-events: none;
+}
+
+.hero__weather-slot :deep(.hero-weather) {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.hero__weather-slot :deep(.hero-weather.is-expanded) {
+  width: clamp(420px, 32vw, 540px);
 }
 
 .hero__explore {
