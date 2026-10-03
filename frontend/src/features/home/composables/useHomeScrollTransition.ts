@@ -41,18 +41,21 @@ export function useHomeScrollTransition({
           trigger: heroStage.value,
           start: 'top top',
           end: 'bottom top',
-          scrub: 0.65,
+          scrub: 0.4,
+          fastScrollEnd: true,
           invalidateOnRefresh: true,
         },
       })
 
+      // Deliberately no animated `filter: blur()` here: blurring a full-screen
+      // WebGL layer every scroll frame was the most expensive part of the
+      // transition. Scale plus opacity reads the same at a fraction of the cost.
       transition.to(
         heroStage.value,
         {
           yPercent: -7,
-          scale: 0.91,
+          scale: 0.93,
           opacity: 0,
-          filter: 'blur(14px)',
         },
         0,
       )
@@ -60,14 +63,12 @@ export function useHomeScrollTransition({
       transition.fromTo(
         content.value,
         {
-          y: 56,
-          opacity: 0.24,
-          scale: 0.992,
+          y: 48,
+          opacity: 0.28,
         },
         {
           y: 0,
           opacity: 1,
-          scale: 1,
         },
         0,
       )

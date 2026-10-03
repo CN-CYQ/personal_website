@@ -292,6 +292,9 @@ export class GrassWaveRenderer {
   private lastHeight = 0
   private lastPixelRatio = 0
   private disposed = false
+  private started = false
+  private visible = true
+  private animationActive = false
   private readonly softwareRenderer = detectSoftwareRenderer()
   private readonly qualityTier: QualityTier
   private readonly qualityProfile: QualityProfile
@@ -349,28 +352,43 @@ export class GrassWaveRenderer {
   }
 
   start() {
-    this.handleResize()
+    this.started = true
     this.startTime = performance.now()
     this.lastFrameTime = this.startTime
     this.lastRenderTime = 0
+    this.handleResize()
+    this.syncAnimation()
+  }
 
-    if (this.reducedMotion) {
-      this.renderFrame(this.startTime)
+  pause() {
+    if (!this.visible) {
       return
     }
 
-    this.animationFrame = requestAnimationFrame(this.renderFrame)
+    this.visible = false
+    this.syncAnimation()
+  }
+
+  resume() {
+    if (this.visible) {
+      return
+    }
+
+    this.visible = true
+    this.syncAnimation()
   }
 
   setDarkMode(isDark: boolean) {
     this.material.uniforms.uDarkMode.value = isDark ? 1 : 0
+
     if (this.reducedMotion) {
-      this.renderFrame(performance.now())
+      this.renderScene(performance.now())
     }
   }
 
   dispose() {
     this.disposed = true
+    this.animationActive = false
     cancelAnimationFrame(this.animationFrame)
     this.resizeObserver.disconnect()
 
@@ -509,8 +527,35 @@ export class GrassWaveRenderer {
     this.renderer.setSize(width, height, false)
 
     if (this.reducedMotion) {
-      this.renderFrame(performance.now())
+      this.renderScene(performance.now())
     }
+  }
+
+  private syncAnimation() {
+    if (this.disposed || !this.started) {
+      return
+    }
+
+    if (!this.visible) {
+      this.animationActive = false
+      cancelAnimationFrame(this.animationFrame)
+      this.animationFrame = 0
+      return
+    }
+
+    if (this.reducedMotion) {
+      this.renderScene(performance.now())
+      return
+    }
+
+    if (this.animationActive) {
+      return
+    }
+
+    this.animationActive = true
+    this.lastFrameTime = performance.now()
+    this.lastRenderTime = 0
+    this.animationFrame = requestAnimationFrame(this.renderFrame)
   }
 
   private readonly handlePointerMove = (event: PointerEvent) => {
@@ -554,7 +599,7 @@ export class GrassWaveRenderer {
   }
 
   private readonly renderFrame = (time: number) => {
-    if (this.disposed) {
+    if (this.disposed || !this.animationActive) {
       return
     }
 
@@ -568,6 +613,19 @@ export class GrassWaveRenderer {
     this.lastRenderTime =
       time -
       (elapsedSinceLastRender % this.qualityProfile.frameInterval)
+
+    this.renderScene(time)
+
+    if (this.animationActive) {
+      this.animationFrame = requestAnimationFrame(this.renderFrame)
+    }
+  }
+
+  private renderScene(time: number) {
+    if (this.viewport.width <= 0) {
+      return
+    }
+
     this.updatePointerTarget()
     const elapsed = (time - this.startTime) / 1000
     const delta = Math.min(
@@ -603,6 +661,5 @@ export class GrassWaveRenderer {
     this.material.uniforms.uPointerSpeed.value = this.pointerSpeed
 
     this.renderer.render(this.scene, this.camera)
-    this.animationFrame = requestAnimationFrame(this.renderFrame)
   }
 }

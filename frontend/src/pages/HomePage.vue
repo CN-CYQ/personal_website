@@ -53,7 +53,7 @@ function scrollToContent() {
   height: 100dvh;
   min-height: 620px;
   transform-origin: center top;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
 }
 
 .home-page__content {

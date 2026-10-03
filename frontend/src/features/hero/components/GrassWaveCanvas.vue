@@ -6,13 +6,26 @@ import { useAppStore } from '@/stores/app'
 const store = useAppStore()
 const container = ref<HTMLDivElement | null>(null)
 const fireflyCanvas = ref<HTMLCanvasElement | null>(null)
+
 let renderer: {
   dispose: () => void
+  pause: () => void
+  resume: () => void
   setDarkMode: (isDark: boolean) => void
   start: () => void
 } | null = null
+
 let fireflyAnimationId = 0
+let fireflyRunning = false
+let fireflySprite: HTMLCanvasElement | null = null
+let heroVisible = true
+let pageVisible = !document.hidden
+let scrollRafId = 0
 let isDisposed = false
+
+const prefersReducedMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)',
+).matches
 
 interface Firefly {
   x: number
@@ -30,6 +43,7 @@ interface Firefly {
 }
 
 const FIREFLY_COUNT = 45
+const FIREFLY_SPRITE_SIZE = 64
 const fireflies: Firefly[] = []
 
 function createFireflies(width: number, height: number) {
@@ -52,11 +66,49 @@ function createFireflies(width: number, height: number) {
   }
 }
 
-function drawFireflies(context: CanvasRenderingContext2D, width: number, height: number) {
-  context.clearRect(0, 0, width, height)
-  const isDark = store.theme === 'dark'
+// Bake the glow once instead of allocating a radial gradient per firefly per frame.
+function buildFireflySprite() {
+  const canvas = document.createElement('canvas')
+  const size = FIREFLY_SPRITE_SIZE
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')
 
-  if (!isDark) return
+  if (!context) {
+    return null
+  }
+
+  const radius = size / 2
+  const gradient = context.createRadialGradient(
+    radius,
+    radius,
+    0,
+    radius,
+    radius,
+    radius,
+  )
+  gradient.addColorStop(0, 'rgba(160, 220, 255, 0.85)')
+  gradient.addColorStop(0.15, 'rgba(140, 200, 240, 0.55)')
+  gradient.addColorStop(0.4, 'rgba(100, 170, 220, 0.16)')
+  gradient.addColorStop(1, 'rgba(60, 120, 180, 0)')
+  context.fillStyle = gradient
+  context.fillRect(0, 0, size, size)
+
+  return canvas
+}
+
+function drawFireflies(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  context.clearRect(0, 0, width, height)
+
+  if (store.theme !== 'dark') {
+    return
+  }
+
+  const sprite = fireflySprite
 
   for (const f of fireflies) {
     f.phase += f.phaseSpeed
@@ -78,25 +130,20 @@ function drawFireflies(context: CanvasRenderingContext2D, width: number, height:
     if (f.y < -20) f.y = height + 20
     if (f.y > height + 20) f.y = -20
 
-    const glowGradient = context.createRadialGradient(
-      f.x, f.y, 0,
-      f.x, f.y, f.glowRadius,
-    )
-    glowGradient.addColorStop(0, `rgba(160, 220, 255, ${alpha * 0.85})`)
-    glowGradient.addColorStop(0.15, `rgba(140, 200, 240, ${alpha * 0.55})`)
-    glowGradient.addColorStop(0.4, `rgba(100, 170, 220, ${alpha * 0.16})`)
-    glowGradient.addColorStop(1, 'rgba(60, 120, 180, 0)')
+    if (sprite) {
+      const size = f.glowRadius * 2
+      context.globalAlpha = alpha
+      context.drawImage(sprite, f.x - f.glowRadius, f.y - f.glowRadius, size, size)
+    }
 
-    context.beginPath()
-    context.arc(f.x, f.y, f.glowRadius, 0, Math.PI * 2)
-    context.fillStyle = glowGradient
-    context.fill()
-
+    context.globalAlpha = Math.min(alpha * 1.2, 0.85)
     context.beginPath()
     context.arc(f.x, f.y, f.radius, 0, Math.PI * 2)
-    context.fillStyle = `rgba(200, 240, 255, ${Math.min(alpha * 1.2, 0.85)})`
+    context.fillStyle = 'rgba(200, 240, 255, 1)'
     context.fill()
   }
+
+  context.globalAlpha = 1
 }
 
 function clearFireflyCanvas() {
@@ -108,36 +155,112 @@ function clearFireflyCanvas() {
   context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
 }
 
+function resizeFireflyCanvas(
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+  dpr: number,
+) {
+  const width = canvas.clientWidth
+  const height = canvas.clientHeight
+  canvas.width = width * dpr
+  canvas.height = height * dpr
+  context.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+  if (fireflies.length === 0) {
+    createFireflies(width, height)
+  }
+}
+
 function startFireflyLoop() {
-  if (!fireflyCanvas.value) return
+  if (fireflyRunning) return
+
   const canvas = fireflyCanvas.value
-  const context = canvas.getContext('2d', { alpha: true })
-  if (!context) return
+  const context = canvas?.getContext('2d', { alpha: true })
+
+  if (!canvas || !context) return
+
+  fireflySprite ??= buildFireflySprite()
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
-  const resize = () => {
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
-    canvas.width = w * dpr
-    canvas.height = h * dpr
-    context.setTransform(dpr, 0, 0, dpr, 0, 0)
-    if (fireflies.length === 0) {
-      createFireflies(w, h)
-    }
-  }
-  resize()
-  window.addEventListener('resize', resize)
+  resizeFireflyCanvas(canvas, context, dpr)
 
   const animate = () => {
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
-    if (w !== canvas.width / dpr || h !== canvas.height / dpr) {
-      resize()
+    const width = canvas.clientWidth
+    const height = canvas.clientHeight
+
+    if (width !== canvas.width / dpr || height !== canvas.height / dpr) {
+      resizeFireflyCanvas(canvas, context, dpr)
     }
-    drawFireflies(context, w, h)
+
+    drawFireflies(context, width, height)
     fireflyAnimationId = requestAnimationFrame(animate)
   }
+
+  fireflyRunning = true
   fireflyAnimationId = requestAnimationFrame(animate)
+}
+
+function stopFireflyLoop() {
+  if (!fireflyRunning) return
+
+  fireflyRunning = false
+  cancelAnimationFrame(fireflyAnimationId)
+  fireflyAnimationId = 0
+}
+
+function syncFireflyLoop() {
+  const shouldRun =
+    store.theme === 'dark' && heroVisible && pageVisible && !prefersReducedMotion
+
+  if (shouldRun) {
+    startFireflyLoop()
+    return
+  }
+
+  stopFireflyLoop()
+
+  if (store.theme !== 'dark') {
+    clearFireflyCanvas()
+  }
+}
+
+function syncHeroLoop() {
+  if (!renderer) return
+
+  if (heroVisible && pageVisible) {
+    renderer.resume()
+  } else {
+    renderer.pause()
+  }
+}
+
+function updateHeroVisibility() {
+  // The hero stage is sticky, so it stays inside the viewport for the whole
+  // scroll. Position against the page transition instead: the meadow has fully
+  // faded out once the content area has scrolled one hero height past the top.
+  const stage = container.value?.closest('.home-page__hero-stage') as
+    | HTMLElement
+    | null
+  const heroDistance = stage?.clientHeight ?? Math.max(window.innerHeight, 1)
+
+  heroVisible = (window.scrollY || window.pageYOffset) < heroDistance * 0.94
+  syncHeroLoop()
+  syncFireflyLoop()
+}
+
+function handleScroll() {
+  if (scrollRafId) return
+
+  scrollRafId = requestAnimationFrame(() => {
+    scrollRafId = 0
+    updateHeroVisibility()
+  })
+}
+
+function handleVisibilityChange() {
+  pageVisible = !document.hidden
+  syncHeroLoop()
+  syncFireflyLoop()
 }
 
 onMounted(async () => {
@@ -153,29 +276,35 @@ onMounted(async () => {
       renderer.setDarkMode(store.theme === 'dark')
       renderer.start()
     } catch {
-      container.value.classList.add('is-unavailable')
+      container.value?.classList.add('is-unavailable')
     }
   }
-  startFireflyLoop()
+
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('resize', updateHeroVisibility)
+  updateHeroVisibility()
+  syncFireflyLoop()
 })
 
 onBeforeUnmount(() => {
   isDisposed = true
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', updateHeroVisibility)
+  cancelAnimationFrame(scrollRafId)
+  scrollRafId = 0
+  stopFireflyLoop()
+  fireflySprite = null
   renderer?.dispose()
   renderer = null
-  cancelAnimationFrame(fireflyAnimationId)
 })
 
 const stopWatch = watch(
   () => store.theme,
   (theme) => {
-    const isDark = theme === 'dark'
-
-    renderer?.setDarkMode(isDark)
-
-    if (!isDark) {
-      clearFireflyCanvas()
-    }
+    renderer?.setDarkMode(theme === 'dark')
+    syncFireflyLoop()
   },
 )
 

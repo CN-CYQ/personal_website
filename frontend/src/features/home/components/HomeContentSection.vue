@@ -56,14 +56,30 @@ const tags = ['Vue', 'TypeScript', 'Motion', 'Design Token', 'Vite', 'Notes']
 
 const sectionRef = ref<HTMLElement | null>(null)
 const isRevealed = ref(false)
+const isActive = ref(false)
 
 let revealObserver: IntersectionObserver | undefined
+let activeObserver: IntersectionObserver | undefined
 
 onMounted(() => {
   const target = sectionRef.value
 
   if (!target) {
     return
+  }
+
+  if (typeof IntersectionObserver === 'undefined') {
+    isActive.value = true
+  } else {
+    // Ambient motion stays paused while the section is off screen, so the
+    // hero's WebGL loop and this section never animate at the same time.
+    activeObserver = new IntersectionObserver(
+      (entries) => {
+        isActive.value = entries.some((entry) => entry.isIntersecting)
+      },
+      { rootMargin: '140px 0px 140px 0px', threshold: 0 },
+    )
+    activeObserver.observe(target)
   }
 
   const prefersReducedMotion = window.matchMedia(
@@ -97,6 +113,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   revealObserver?.disconnect()
   revealObserver = undefined
+  activeObserver?.disconnect()
+  activeObserver = undefined
 })
 </script>
 
@@ -105,13 +123,13 @@ onBeforeUnmount(() => {
     id="home-content"
     ref="sectionRef"
     class="home-content"
-    :class="{ 'is-revealed': isRevealed }"
+    :class="{ 'is-revealed': isRevealed, 'is-active': isActive }"
     aria-labelledby="home-content-title"
     tabindex="-1"
   >
     <div class="home-content__atmosphere" aria-hidden="true">
+      <span class="home-content__glow home-content__glow--sun" />
       <span class="home-content__glow home-content__glow--sky" />
-      <span class="home-content__glow home-content__glow--pearl" />
       <span class="home-content__glow home-content__glow--deep" />
       <span class="home-content__filaments">
         <i v-for="filament in 9" :key="filament" />
@@ -265,6 +283,10 @@ onBeforeUnmount(() => {
   --hc-panel-2: rgb(228 242 251 / 40%);
   --hc-panel-border: rgb(255 255 255 / 72%);
   --hc-shadow: rgb(30 78 112 / 14%);
+  --hc-warm: #f0ebdc;
+  --hc-warm-soft: rgb(240 235 220 / 46%);
+  --hc-warm-line: rgb(240 235 220 / 72%);
+  --hc-warm-deep: rgb(214 184 128 / 82%);
 
   position: relative;
   z-index: 5;
@@ -273,6 +295,14 @@ onBeforeUnmount(() => {
   padding: clamp(72px, 10vw, 132px) clamp(18px, 4vw, 68px) clamp(32px, 5vw, 72px);
   color: var(--hc-ink);
   background:
+    radial-gradient(96% 66% at 96% -6%,
+      rgb(240 235 220 / 82%) 0%,
+      rgb(240 235 220 / 38%) 24%,
+      rgb(240 235 220 / 12%) 44%,
+      transparent 62%),
+    radial-gradient(64% 34% at 100% 104%,
+      rgb(240 235 220 / 40%) 0%,
+      transparent 68%),
     linear-gradient(180deg,
       rgb(198 224 240 / 0%) 0%,
       rgb(198 224 240 / 0%) 7%,
@@ -308,6 +338,10 @@ onBeforeUnmount(() => {
   left: 0;
   height: clamp(150px, 22vw, 260px);
   background:
+    linear-gradient(100deg,
+      rgb(240 235 220 / 0%) 34%,
+      rgb(240 235 220 / 34%) 72%,
+      rgb(240 235 220 / 62%) 100%),
     linear-gradient(180deg,
       rgb(214 235 248 / 0%) 0%,
       rgb(214 235 248 / 22%) 28%,
@@ -332,37 +366,41 @@ onBeforeUnmount(() => {
   z-index: 0;
   inset: 0;
   overflow: hidden;
+  contain: layout paint style;
   pointer-events: none;
 }
 
 .home-content__glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(38px);
+  opacity: 0.9;
+  will-change: transform, opacity;
+  animation-play-state: paused;
+}
+
+/* warm sun in the top-right corner, echoing the reference palette */
+.home-content__glow--sun {
+  top: -14%;
+  right: -12%;
+  width: min(56vw, 720px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle,
+    rgb(240 235 220 / 88%) 0%,
+    rgb(240 235 220 / 36%) 38%,
+    transparent 70%);
+  animation: hc-breathe 14s ease-in-out infinite alternate;
 }
 
 .home-content__glow--sky {
-  top: -16%;
-  right: -10%;
-  width: min(58vw, 740px);
+  top: 14%;
+  left: -18%;
+  width: min(48vw, 640px);
   aspect-ratio: 1;
   background: radial-gradient(circle,
-    rgb(255 255 255 / 74%) 0%,
-    rgb(226 242 252 / 40%) 38%,
-    transparent 70%);
-  animation: hc-breathe 11s ease-in-out infinite alternate;
-}
-
-.home-content__glow--pearl {
-  top: 16%;
-  left: -16%;
-  width: min(48vw, 620px);
-  aspect-ratio: 1;
-  background: radial-gradient(circle,
-    rgb(216 237 251 / 64%) 0%,
-    rgb(190 220 241 / 26%) 44%,
+    rgb(226 242 252 / 66%) 0%,
+    rgb(190 220 241 / 24%) 44%,
     transparent 72%);
-  animation: hc-breathe 15s ease-in-out infinite alternate-reverse;
+  animation: hc-breathe 11s ease-in-out infinite alternate-reverse;
 }
 
 .home-content__glow--deep {
@@ -400,7 +438,9 @@ onBeforeUnmount(() => {
     rgb(238 249 255 / 74%) 42%,
     rgb(130 176 210 / 0%));
   transform-origin: bottom center;
+  will-change: transform;
   animation: hc-current 7.5s ease-in-out infinite alternate;
+  animation-play-state: paused;
 }
 
 .home-content__filaments i:nth-child(2n) {
@@ -447,7 +487,7 @@ onBeforeUnmount(() => {
 .hc-eyebrow::before {
   width: 18px;
   height: 1px;
-  background: linear-gradient(90deg, var(--hc-accent), transparent);
+  background: linear-gradient(90deg, var(--hc-warm-deep), var(--hc-accent));
   content: '';
 }
 
@@ -476,8 +516,9 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: linear-gradient(90deg,
     rgb(109 182 218 / 0%),
-    rgb(109 182 218 / 62%),
-    rgb(109 182 218 / 0%));
+    rgb(109 182 218 / 58%) 44%,
+    rgb(214 184 128 / 80%) 78%,
+    rgb(240 235 220 / 0%));
   content: '';
 }
 
@@ -540,8 +581,8 @@ onBeforeUnmount(() => {
   box-shadow:
     0 20px 46px var(--hc-shadow),
     inset 0 1px 0 rgb(255 255 255 / 88%);
-  backdrop-filter: blur(18px) saturate(132%);
-  -webkit-backdrop-filter: blur(18px) saturate(132%);
+  backdrop-filter: blur(10px) saturate(124%);
+  -webkit-backdrop-filter: blur(10px) saturate(124%);
 }
 
 .profile-summary::before {
@@ -565,7 +606,8 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   color: var(--hc-accent-text);
   background:
-    radial-gradient(circle at 36% 26%, rgb(255 255 255 / 86%), transparent 42%),
+    radial-gradient(circle at 34% 24%, rgb(255 255 255 / 88%), transparent 42%),
+    radial-gradient(circle at 74% 78%, rgb(240 235 220 / 82%), transparent 46%),
     linear-gradient(150deg, #d7ecf9, #8dc0de);
   box-shadow: 0 12px 26px rgb(34 88 126 / 18%);
   font-size: 0.82rem;
@@ -579,6 +621,7 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   content: '';
   animation: hc-orbit 22s linear infinite;
+  animation-play-state: paused;
 }
 
 .profile-summary h3,
@@ -640,10 +683,11 @@ onBeforeUnmount(() => {
   padding: 22px;
   border: 1px solid var(--hc-line);
   border-radius: 18px;
-  background: linear-gradient(160deg, rgb(255 255 255 / 46%), rgb(233 245 252 / 22%));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 76%);
-  backdrop-filter: blur(12px) saturate(126%);
-  -webkit-backdrop-filter: blur(12px) saturate(126%);
+  background: linear-gradient(160deg,
+    rgb(255 255 255 / 62%),
+    rgb(240 235 220 / 30%) 58%,
+    rgb(233 245 252 / 34%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 82%);
   transition:
     transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 220ms ease,
@@ -651,7 +695,7 @@ onBeforeUnmount(() => {
 }
 
 .content-card:hover {
-  border-color: rgb(109 182 218 / 46%);
+  border-color: rgb(214 184 128 / 52%);
   box-shadow:
     0 16px 34px rgb(30 78 112 / 10%),
     inset 0 1px 0 rgb(255 255 255 / 84%);
@@ -703,7 +747,10 @@ onBeforeUnmount(() => {
   inset: 6px -14px;
   z-index: 0;
   border-radius: 18px;
-  background: linear-gradient(115deg, rgb(255 255 255 / 62%), rgb(222 239 250 / 26%));
+  background: linear-gradient(115deg,
+    rgb(255 255 255 / 62%),
+    rgb(240 235 220 / 44%) 62%,
+    rgb(222 239 250 / 26%));
   content: '';
   opacity: 0;
   transform: scale(0.985);
@@ -720,7 +767,7 @@ onBeforeUnmount(() => {
   left: -6px;
   width: 2px;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--hc-cyan), var(--hc-accent-strong));
+  background: linear-gradient(180deg, var(--hc-warm), var(--hc-accent));
   content: '';
   opacity: 0;
   transform: scaleY(0.3);
@@ -801,10 +848,10 @@ onBeforeUnmount(() => {
 .post-preview__reading {
   align-self: start;
   padding: 6px 12px;
-  border: 1px solid rgb(255 255 255 / 76%);
+  border: 1px solid rgb(255 255 255 / 82%);
   border-radius: 999px;
   color: var(--hc-accent-text);
-  background: rgb(255 255 255 / 46%);
+  background: linear-gradient(120deg, rgb(255 255 255 / 66%), rgb(240 235 220 / 56%));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%);
   font-size: 0.66rem;
   font-weight: 750;
@@ -874,7 +921,7 @@ onBeforeUnmount(() => {
 
 .tag-list li:hover {
   color: var(--hc-accent-strong);
-  background: rgb(109 182 218 / 22%);
+  background: var(--hc-warm);
   transform: translateY(-2px);
 }
 
@@ -906,6 +953,7 @@ onBeforeUnmount(() => {
     0 0 0 4px rgb(74 168 216 / 16%),
     0 0 14px rgb(74 168 216 / 46%);
   animation: hc-pulse 2.4s ease-in-out infinite;
+  animation-play-state: paused;
 }
 
 .site-status-card__row strong {
@@ -1052,6 +1100,14 @@ onBeforeUnmount(() => {
   transition-delay: 470ms;
 }
 
+/* ambient motion only runs while the section is near the viewport */
+.home-content.is-active .home-content__glow,
+.home-content.is-active .home-content__filaments i,
+.home-content.is-active .profile-summary__mark::after,
+.home-content.is-active .site-status-card__row i {
+  animation-play-state: running;
+}
+
 @keyframes hc-breathe {
   from {
     opacity: 0.62;
@@ -1102,8 +1158,16 @@ onBeforeUnmount(() => {
   --hc-panel-2: rgb(8 24 40 / 40%);
   --hc-panel-border: rgb(96 152 196 / 26%);
   --hc-shadow: rgb(0 8 20 / 34%);
+  --hc-warm: rgb(240 235 220 / 20%);
+  --hc-warm-soft: rgb(240 235 220 / 14%);
+  --hc-warm-line: rgb(240 235 220 / 24%);
+  --hc-warm-deep: rgb(214 184 128 / 58%);
 
   background:
+    radial-gradient(88% 60% at 98% -8%,
+      rgb(240 235 220 / 14%) 0%,
+      rgb(240 235 220 / 6%) 30%,
+      transparent 58%),
     linear-gradient(180deg,
       rgb(4 15 28 / 0%) 0%,
       rgb(4 15 28 / 0%) 7%,
@@ -1123,6 +1187,10 @@ onBeforeUnmount(() => {
 
 [data-theme='dark'] .home-content::after {
   background:
+    linear-gradient(100deg,
+      rgb(240 235 220 / 0%) 40%,
+      rgb(240 235 220 / 8%) 76%,
+      rgb(240 235 220 / 16%) 100%),
     linear-gradient(180deg,
       rgb(12 34 56 / 0%) 0%,
       rgb(12 34 56 / 22%) 28%,
@@ -1137,11 +1205,11 @@ onBeforeUnmount(() => {
     transparent 72%);
 }
 
-[data-theme='dark'] .home-content__glow--pearl {
+[data-theme='dark'] .home-content__glow--sun {
   background: radial-gradient(circle,
-    rgb(80 140 190 / 26%) 0%,
-    rgb(50 100 150 / 12%) 46%,
-    transparent 74%);
+    rgb(214 184 140 / 22%) 0%,
+    rgb(170 140 96 / 10%) 44%,
+    transparent 72%);
 }
 
 [data-theme='dark'] .home-content__glow--deep {
@@ -1166,12 +1234,16 @@ onBeforeUnmount(() => {
   border-color: rgb(120 180 220 / 32%);
   color: #acdaf2;
   background:
-    radial-gradient(circle at 36% 26%, rgb(170 215 240 / 22%), transparent 42%),
+    radial-gradient(circle at 34% 24%, rgb(170 215 240 / 24%), transparent 42%),
+    radial-gradient(circle at 74% 78%, rgb(214 184 140 / 26%), transparent 46%),
     linear-gradient(150deg, #1d4664, #143149);
 }
 
 [data-theme='dark'] .content-card {
-  background: linear-gradient(160deg, rgb(14 38 60 / 52%), rgb(8 24 40 / 26%));
+  background: linear-gradient(160deg,
+    rgb(14 38 60 / 56%),
+    rgb(28 40 44 / 30%) 58%,
+    rgb(8 24 40 / 30%));
   box-shadow: inset 0 1px 0 rgb(140 190 230 / 12%);
 }
 
@@ -1244,6 +1316,8 @@ onBeforeUnmount(() => {
     box-shadow:
       0 22px 50px rgb(18 54 84 / 24%),
       inset 0 1px 0 rgb(140 190 230 / 16%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .home-content__mobile-art :deep(.gallery-card__eyebrow),
